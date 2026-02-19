@@ -1,5 +1,6 @@
 import 'package:homelyhope/features/organization/data/datasources/jobs/jobs_remote_datasource.dart';
 import 'package:homelyhope/features/organization/data/models/jobs/jobs_model.dart';
+import 'package:homelyhope/features/organization/data/models/jobs/job_application_model.dart';
 import 'package:homelyhope/features/organization/data/repositories/jobs/jobs_repository.dart';
 
 class JobsRepositoryImpl implements JobsRepository {
@@ -30,5 +31,15 @@ class JobsRepositoryImpl implements JobsRepository {
       print('❌ [JOBS REPOSITORY] Stack trace: $stackTrace');
       rethrow;
     }
+  }
+
+  @override
+  Future<void> applyJob(String jobId) async {
+    return await remoteDatasource.applyJob(jobId);
+  }
+
+  @override
+  Future<List<JobApplicationModel>> getJobHistory() async {
+    return await remoteDatasource.getJobHistory();
   }
 }

@@ -4,8 +4,12 @@ class AuthRepositoryImpl {
   final AuthRemoteDatasource remote;
   AuthRepositoryImpl(this.remote);
 
-  Future<Map<String, dynamic>> login(String email, String password) {
-    return remote.login(email, password);
+  Future<Map<String, dynamic>> login(
+    String email,
+    String password, [
+    String? fcmToken,
+  ]) {
+    return remote.login(email, password, fcmToken);
   }
 
   Future<Map<String, dynamic>> sendOtpForResetPassWord(
@@ -17,5 +21,9 @@ class AuthRepositoryImpl {
 
   Future<Map<String, dynamic>> ResetPassWord(String email, String newPassword) {
     return remote.ResetPassWord(email, newPassword);
+  }
+
+  Future<Map<String, dynamic>> logout(String token, String fcmToken) {
+    return remote.logout(token, fcmToken);
   }
 }

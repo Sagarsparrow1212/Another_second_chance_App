@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:homelyhope/core/providers/snackbar_provider.dart';
 import 'package:homelyhope/features/common/Drawer/providers/drawer_provider.dart';
-import 'package:homelyhope/features/common/auth/data/services/auth_storage_service.dart';
+import 'package:homelyhope/features/common/auth/presentation/login_page.dart';
 
 void showLogoutPopup(BuildContext context) {
   showDialog(
@@ -105,10 +105,16 @@ void showLogoutPopup(BuildContext context) {
                             snackbarServiceProvider,
                           );
 
+                          final authNotifier = container.read(
+                            authNotifierProvider.notifier,
+                          );
+
                           ctx.pop(); // close dialog
 
                           drawerNotifier.reset();
-                          await AuthStorageService.clearAuthData();
+
+                          // Call logout API and clear data
+                          await authNotifier.logout();
 
                           await Future.delayed(
                             const Duration(milliseconds: 100),

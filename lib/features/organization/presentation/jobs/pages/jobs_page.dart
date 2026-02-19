@@ -218,7 +218,7 @@ class _JobsPageState extends ConsumerState<JobsPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       drawer: AppDrawer(),
-      appBar: CustomAppBar(title: 'Jobss'),
+      appBar: CustomAppBar(title: 'Jobs'),
       body: jobsAsync.when(
         // ✅ Loading state
         loading: () => Center(child: AppLoader()),
@@ -884,34 +884,34 @@ class _JobsPageState extends ConsumerState<JobsPage> {
                                 // Edit Button - White with grey border
 
                                 // Delete Button - White with grey border, red icon
-                                OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: Colors.red,
-                                    side: BorderSide(
-                                      color: Colors.grey.shade300,
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    showDeleteJobDialog(
-                                      context,
-                                      job.id,
-                                      job.title,
-                                      ref,
-                                    );
-                                  },
-                                  child: const Icon(
-                                    Icons.delete_outline,
-                                    size: 20,
-                                  ),
-                                ),
+                                // OutlinedButton(
+                                //   style: OutlinedButton.styleFrom(
+                                //     shape: RoundedRectangleBorder(
+                                //       borderRadius: BorderRadius.circular(10),
+                                //     ),
+                                //     backgroundColor: Colors.white,
+                                //     foregroundColor: Colors.red,
+                                //     side: BorderSide(
+                                //       color: Colors.grey.shade300,
+                                //     ),
+                                //     padding: const EdgeInsets.symmetric(
+                                //       horizontal: 12,
+                                //       vertical: 8,
+                                //     ),
+                                //   ),
+                                //   onPressed: () {
+                                //     showDeleteJobDialog(
+                                //       context,
+                                //       job.id,
+                                //       job.title,
+                                //       ref,
+                                //     );
+                                //   },
+                                //   child: const Icon(
+                                //     Icons.delete_outline,
+                                //     size: 20,
+                                //   ),
+                                // ),
                               ],
                             ),
                           ),

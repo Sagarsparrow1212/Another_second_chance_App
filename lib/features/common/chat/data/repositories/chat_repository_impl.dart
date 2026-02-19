@@ -48,7 +48,25 @@ class ChatRepositoryImpl implements ChatRepository {
     String organizationId,
     String homelessId,
   ) async {
-    return await remoteDatasource.getOrCreateChat(organizationId, homelessId);
+    final chat = await remoteDatasource.getOrCreateChat(
+      organizationId,
+      homelessId,
+    );
+    await localDatasource.updateChat(chat);
+    return chat;
+  }
+
+  @override
+  Future<ChatModel> getOrCreateMerchantChat(
+    String merchantId,
+    String homelessId,
+  ) async {
+    final chat = await remoteDatasource.getOrCreateMerchantChat(
+      merchantId,
+      homelessId,
+    );
+    await localDatasource.updateChat(chat);
+    return chat;
   }
 
   @override
@@ -61,8 +79,7 @@ class ChatRepositoryImpl implements ChatRepository {
         .then((_) {
           // Success - messages are already saved to local storage
         })
-        .catchError((e) {
-        });
+        .catchError((e) {});
 
     // Return local messages immediately
     return localMessages;

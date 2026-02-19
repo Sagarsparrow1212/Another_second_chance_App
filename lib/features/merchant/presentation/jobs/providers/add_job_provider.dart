@@ -54,6 +54,19 @@ class AddJobNotifier extends StateNotifier<AddJobState> {
     }
   }
 
+  /// Delete a job
+  Future<void> deleteJob(String jobId) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      await _datasource.deleteJob(jobId);
+      state = state.copyWith(isLoading: false, isSuccess: true);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
   void reset() {
     state = AddJobState();
   }

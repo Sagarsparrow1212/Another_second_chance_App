@@ -54,69 +54,74 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo
-                  _buildLogo(),
-                  const SizedBox(height: 8),
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo
+                      _buildLogo(),
+                      const SizedBox(height: 8),
 
-                  // Title
-                  const Text(
-                    'Who are you?',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.lightText,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+                      // Title
+                      const Text(
+                        'Who are you?',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.lightText,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
 
-                  // Subtitle
-                  Text(
-                    'Choose how you\'d like to join our platform',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: AppTheme.lightSubText,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
+                      // Subtitle
+                      Text(
+                        'Choose how you\'d like to join our platform',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: AppTheme.lightSubText,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
 
-                  // Role Cards
-                  _buildRoleCard(
-                    role: UserRole.organization,
-                    title: 'Organization',
-                    description:
-                        'Register your NGO or group to support homeless individuals.',
-                    icon: Icons.business_center_outlined,
-                    iconColor: const Color(0xFF3ebaaf),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildRoleCard(
-                    role: UserRole.merchant,
-                    title: 'Merchant',
-                    description:
-                        'Provide services, or essentials through our platform.',
-                    icon: Icons.store_outlined,
-                    iconColor: const Color(0xFFEB9A4A),
-                  ),
-                  // add other role card that is the donor
-                  const SizedBox(height: 16),
-                  _buildRoleCard(
-                    role: UserRole.donor,
-                    title: 'Donor',
-                    description:
-                        'Donate to homeless individuals through our platform.',
-                    icon: Icons.favorite_outlined,
-                    iconColor: const Color(0xFF15306C),
-                  ),
-                  const SizedBox(height: 16),
+                      // Role Cards
+                      _buildRoleCard(
+                        role: UserRole.organization,
+                        title: 'Organization',
+                        description:
+                            'Register your NGO or group to support homeless individuals.',
+                        icon: Icons.business_center_outlined,
+                        iconColor: const Color(0xFF3ebaaf),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildRoleCard(
+                        role: UserRole.merchant,
+                        title: 'Merchant',
+                        description:
+                            'Provide services, or essentials through our platform.',
+                        icon: Icons.store_outlined,
+                        iconColor: const Color(0xFFEB9A4A),
+                      ),
+                      // add other role card that is the donor
+                      const SizedBox(height: 16),
+                      _buildRoleCard(
+                        role: UserRole.donor,
+                        title: 'Donor',
+                        description:
+                            'Donate to homeless individuals through our platform.',
+                        icon: Icons.favorite_outlined,
+                        iconColor: const Color(0xFF15306C),
+                      ),
+                      const SizedBox(height: 16),
 
-                  // Continue Button
-                  _buildContinueButton(),
-                ],
+                      // Continue Button
+                      _buildContinueButton(),
+                      const SizedBox(height: 24), // Added bottom padding
+                    ],
+                  ),
+                ),
               ),
             ),
             Positioned(

@@ -585,8 +585,9 @@ class AddHomelessFormNotifier extends StateNotifier<AddHomelessFormState> {
 
       case 'commissionCut':
         if (value.isEmpty) {
-          errors[field] = 'Commission Cut is required';
-          valid[field] = false;
+          // Optional - will use default if empty
+          errors[field] = null;
+          valid[field] = true;
         } else {
           // Try to parse as double
           final parsedValue = double.tryParse(value);
@@ -860,9 +861,7 @@ class AddHomelessFormNotifier extends StateNotifier<AddHomelessFormState> {
               '';
 
           if (commissionCutToUse.isEmpty) {
-            throw Exception(
-              'Organization default commission is not configured. Please set it in your organization profile.',
-            );
+            commissionCutToUse = '0';
           }
         } catch (e) {
           // If we can't get organization commission, throw error
@@ -898,9 +897,11 @@ class AddHomelessFormNotifier extends StateNotifier<AddHomelessFormState> {
 
       state = state.copyWith(isLoading: false, isSuccess: true);
     } on DioException catch (e) {
+      print(e.response?.data);
       final msg = e.response?.data?['message'] ?? 'Something went wrong';
       state = state.copyWith(isLoading: false, submitError: () => msg);
     } catch (e) {
+      print(e);
       state = state.copyWith(isLoading: false, submitError: () => e.toString());
     }
   }

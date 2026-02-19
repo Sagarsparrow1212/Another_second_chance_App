@@ -11,6 +11,7 @@ import '../homeless_people/pages/add_homeless.dart';
 import '../homeless_people/pages/view_homeless_detail.dart';
 import '../jobs/pages/jobs_page.dart';
 import '../donation_history/pages/donation_history.dart';
+import 'package:homelyhope/features/organization/presentation/wallet/pages/wallet_page.dart';
 import '../../../common/chat/presentation/pages/chat_list_page.dart';
 
 final organizationRoutes = [
@@ -60,6 +61,10 @@ final organizationRoutes = [
   GoRoute(
     path: '/organization/chat',
     builder: (context, state) => const ChatListPage(),
+  ),
+  GoRoute(
+    path: '/organization/wallet',
+    builder: (context, state) => const OrganizationWalletPage(),
   ),
   GoRoute(
     path: '/organization/chat/start',

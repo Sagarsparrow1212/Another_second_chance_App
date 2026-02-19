@@ -9,6 +9,7 @@ import 'package:homelyhope/features/common/Drawer/pages/dynamic_drawer.dart';
 
 import '../../../../common/widgets/custom_appbar.dart';
 import '../../myprofile/providers/donor_profile_provider.dart';
+import '../providers/donor_dashboard_provider.dart';
 
 class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
@@ -253,60 +254,60 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
   }
 
   Widget _buildQuickStats() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Quick Stats',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  icon: Icons.monetization_on_outlined,
-                  iconColor: Colors.green,
-                  title: 'Total Donated',
-                  value: '\$1,250',
+    final statsAsync = ref.watch(donorDashboardStatsProvider);
+
+    return statsAsync.when(
+      data: (stats) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Quick Stats',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    icon: Icons.monetization_on_outlined,
+                    iconColor: Colors.green,
+                    title: 'Total Donated',
+                    value: '\$${stats.totalDonated.toStringAsFixed(2)}',
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  icon: Icons.favorite_outline,
-                  iconColor: Colors.red,
-                  title: 'Donations',
-                  value: '12',
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(
+                    icon: Icons.favorite_outline,
+                    iconColor: Colors.red,
+                    title: 'Donations',
+                    value: stats.totalDonations.toString(),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  icon: Icons.business_outlined,
-                  iconColor: Colors.blue,
-                  title: 'Organizations',
-                  value: '5',
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    icon: Icons.business_outlined,
+                    iconColor: Colors.blue,
+                    title: 'Organizations',
+                    value: stats.organizationsCount.toString(),
+                  ),
                 ),
-              ),
-              // const SizedBox(width: 12),
-              // Expanded(
-              //   child: _buildStatCard(
-              //     icon: Icons.star_outline,
-              //     iconColor: Colors.orange,
-              //     title: 'Impact Score',
-              //     value: '850',
-              //   ),
-              // ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text('Error loading stats: $err'),
       ),
     );
   }

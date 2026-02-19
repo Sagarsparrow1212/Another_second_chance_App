@@ -3,6 +3,10 @@ import '../models/chat_model.dart';
 abstract class ChatRepository {
   Future<List<ChatModel>> getAllChats();
   Future<ChatModel> getOrCreateChat(String organizationId, String homelessId);
+  Future<ChatModel> getOrCreateMerchantChat(
+    String merchantId,
+    String homelessId,
+  );
   Future<List<MessageModel>> getMessages(String chatId);
   Future<List<MessageModel>> getMessagesPaginated(
     String chatId, {

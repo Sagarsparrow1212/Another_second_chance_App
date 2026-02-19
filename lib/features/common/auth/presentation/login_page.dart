@@ -123,21 +123,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   // }
 
   Future<void> _handleLoginSuccess() async {
+    print('Login successful!ss');
     if (_hasNavigated || !mounted) {
+      print('Login successful!sssss');
       return;
     }
-
+    print('Login successful!ssssss');
     _hasNavigated = true; // Set early to prevent duplicate calls
-
+    print('Login successful!ssssss');
     try {
       // Reset drawer state to ensure fresh role fetch for new user
       ref.read(drawerNotifierProvider.notifier).reset();
-
+      print('Login successful!ssssss');
       final isLoggedIn = await AuthStorageService.isLoggedIn();
       final isVerified = await AuthStorageService.isVerified();
       final userRole = await AuthStorageService.getUserRole();
 
       if (!mounted) {
+        print('Widget is not mounted');
         return;
       }
 
@@ -175,6 +178,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         context.go(targetRoute);
       }
     } catch (e) {
+      print('Login successful!ssssss $e');
       _hasNavigated = false; // Reset to allow retry on error
     }
   }
@@ -424,7 +428,8 @@ class _LoginBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleSpacing = screenHeight * 0.045;
+    // reduced spacing for smaller screens
+    final titleSpacing = screenHeight * 0.02;
 
     return Container(
       height: screenHeight,
@@ -432,21 +437,33 @@ class _LoginBackground extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: _LoginPageConstants.backgroundGradient,
       ),
-      child: Column(
-        children: [
-          const SizedBox(height: 50),
-          buildDonHaveAccount(context),
-          SizedBox(height: titleSpacing),
-          const Text(
-            'HomelyHope',
-            style: TextStyle(
-              fontSize: 32,
-              fontFamily: 'Poppins',
+      child: SafeArea(
+        // ✅ Added SafeArea
+        child: Column(
+          children: [
+            const SizedBox(height: 20), // reduced top margin
+            buildDonHaveAccount(context),
+            if (MediaQuery.of(context).size.height > 680)
+              SizedBox(height: titleSpacing),
+            const SizedBox(height: 20), // Added consistent spacing before logo
+            Image.asset(
+              'assets/logo/homelyhope.png',
+              height: 60,
+              width: 100,
               color: Colors.white,
-              fontWeight: FontWeight.w700,
+              fit: BoxFit.cover,
             ),
-          ),
-        ],
+            Text(
+              'Another Second Chance',
+              style: TextStyle(
+                fontSize: 20,
+                fontFamily: 'Poppins',
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -464,26 +481,56 @@ class _LoginMiddleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final horizontalPadding = screenWidth * 0.07;
-    final topMargin = screenHeight * 0.275;
-    final containerHeight = screenHeight * 0.73;
+    // ✅ Use a max height constraint to prevent overflow on very tall screens
+    // AND a min-space constraint to ensure logo/text isn't covered.
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: horizontalPadding,
-        right: horizontalPadding,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: _LoginPageConstants.gradientColor1.withValues(alpha: 0.3),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
+    // Ideal height based on percentage
+    final double percentageHeight = screenHeight * 0.73;
+
+    // Absolute max height for large tables
+    final double maxCardHeight = 600.0;
+
+    // Minimum space required for top elements (Logo, "Another Second Chance", "Don't have account")
+    // Logo(60) + Text(30) + Spacing(20+20) + AccountRow(40) + SafeArea(~40) ≈ 210-220
+    final double minTopSpace = 200.0;
+    final double maxAllowedHeight = screenHeight - minTopSpace;
+
+    // The actual height uses the smallest of:
+    // 1. Percentage height (for normal mobile)
+    // 2. Max fixed height (for large tablets)
+    // 3. Space-constrained height (for small/landscape screens)
+    double containerHeight = percentageHeight;
+    if (containerHeight > maxCardHeight) containerHeight = maxCardHeight;
+    if (containerHeight > maxAllowedHeight) containerHeight = maxAllowedHeight;
+
+    // Ensure it doesn't get ridiculously small (e.g. keyboard open or very small landscape)
+    // But aligning to bottom usually handles keyboard by pushing up?
+    // Actually this is a static layout behind the keyboard usually, or resized.
+    if (containerHeight < 300) containerHeight = 300;
+
+    final effectiveWidth = screenWidth > 600 ? 500.0 : screenWidth;
+    final horizontalPadding = screenWidth > 600
+        ? (screenWidth - effectiveWidth) / 2 + (effectiveWidth * 0.07)
+        : screenWidth * 0.07;
+
+    return Align(
+      alignment: Alignment.bottomCenter, // ✅ Always align to bottom
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: horizontalPadding,
+          right: horizontalPadding,
         ),
-        margin: EdgeInsets.only(top: topMargin),
-        height: containerHeight,
-        width: screenWidth,
+        child: Container(
+          decoration: BoxDecoration(
+            color: _LoginPageConstants.gradientColor1.withValues(alpha: 0.3),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          height: containerHeight,
+          width: effectiveWidth,
+        ),
       ),
     );
   }
@@ -536,13 +583,37 @@ class _LoginFormCardState extends ConsumerState<_LoginFormCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bottomContainerHeight = widget.screenHeight * 0.70;
+
+    // ✅ Logic must match MiddleCard (slightly smaller to show the middle card lip)
+    // Middle card uses 0.73, Form uses 0.70.
+    // Middle reserves 240px. Form should allow Middle to show ~20px lip?
+    // Actually Form sits on top.
+
+    final double percentageHeight = widget.screenHeight * 0.70;
+    final double maxCardHeight = 580.0;
+    // Reserve minimal space. The middle card reserves 240.
+    // If middle card is forced to shrink, this one should shrink too to maintain ratio/layering.
+    // Let's reserve 260 here (240 + 20 px difference).
+    final double minTopSpace = 220.0;
+    final double maxAllowedHeight = widget.screenHeight - minTopSpace;
+
+    double bottomContainerHeight = percentageHeight;
+    if (bottomContainerHeight > maxCardHeight)
+      bottomContainerHeight = maxCardHeight;
+    if (bottomContainerHeight > maxAllowedHeight)
+      bottomContainerHeight = maxAllowedHeight;
+
+    if (bottomContainerHeight < 280) bottomContainerHeight = 280;
+
+    final effectiveWidth = widget.screenWidth > 600
+        ? 500.0
+        : widget.screenWidth;
 
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
         height: bottomContainerHeight,
-        width: widget.screenWidth,
+        width: effectiveWidth,
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -552,157 +623,164 @@ class _LoginFormCardState extends ConsumerState<_LoginFormCard> {
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 24),
-              Text(
-                'Welcome Back!',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Login to your account',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              TextFormField(
-                focusNode: widget.emailFocusNode,
-                controller: widget.emailController,
-                autofocus: false,
-
-                decoration: InputDecoration(
-                  labelText: 'Email or Username',
-                  hintText: 'Enter email or username',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
+          // ✅ Wrap in Center + SingleChildScrollView to handle overflow
+          // while keeping content centered if it fits.
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 24),
+                  Text(
+                    'Welcome Back!',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                validator: (value) {
-                  final input = value?.trim() ?? "";
+                  const SizedBox(height: 4),
+                  Text(
+                    'Login to your account',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
-                  if (input.isEmpty) {
-                    return 'Email or username should not be empty';
-                  }
+                  TextFormField(
+                    focusNode: widget.emailFocusNode,
+                    controller: widget.emailController,
+                    autofocus: false,
 
-                  // Use static regex patterns
-                  if (_LoginPageConstants.emailRegex.hasMatch(input)) {
-                    return null;
-                  }
-
-                  if (_LoginPageConstants.userNameRegex.hasMatch(input)) {
-                    return null;
-                  }
-
-                  return 'Enter a valid email or username';
-                },
-              ),
-              const SizedBox(height: 12),
-              // ✅ Use ValueListenableBuilder to listen to password visibility changes
-              // This avoids setState completely
-              ValueListenableBuilder<bool>(
-                valueListenable: _isPasswordShowNotifier,
-                builder: (context, isPasswordShow, _) {
-                  return TextFormField(
-                    focusNode: widget.passwordFocusNode,
-                    controller: widget.passwordController,
-                    autofocus: false, // ✅ Explicitly disable auto-focus
                     decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          // ✅ Update ValueNotifier - no setState needed
-                          _isPasswordShowNotifier.value =
-                              !_isPasswordShowNotifier.value;
-                        },
-                        icon: isPasswordShow
-                            ? Icon(Icons.remove_red_eye)
-                            : Icon(Icons.visibility_off),
-                      ),
-                      labelText: 'Password',
-                      hintText: 'Enter your password',
+                      labelText: 'Email or Username',
+                      hintText: 'Enter email or username',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Password should not be empty';
-                      } else if (value.length < 8) {
-                        return 'Password must be at least 8 characters';
-                      }
-                      return null;
-                    },
-                    obscureText: isPasswordShow,
-                  );
-                },
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => context.push('/forgotPassword'),
-                    child: const Text('Forgot Password?'),
-                  ),
-                ],
-              ),
+                      final input = value?.trim() ?? "";
 
-              InkWell(
-                onTap: widget.onLogin,
-                child: Container(
-                  width: double.infinity,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    gradient: _LoginPageConstants.buttonGradient,
-                    borderRadius: BorderRadius.circular(12.0),
+                      if (input.isEmpty) {
+                        return 'Email or username should not be empty';
+                      }
+
+                      // Use static regex patterns
+                      if (_LoginPageConstants.emailRegex.hasMatch(input)) {
+                        return null;
+                      }
+
+                      if (_LoginPageConstants.userNameRegex.hasMatch(input)) {
+                        return null;
+                      }
+
+                      return 'Enter a valid email or username';
+                    },
                   ),
-                  child: const Center(
-                    child: Text(
-                      'Login',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
+                  const SizedBox(height: 12),
+                  // ✅ Use ValueListenableBuilder to listen to password visibility changes
+                  // This avoids setState completely
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _isPasswordShowNotifier,
+                    builder: (context, isPasswordShow, _) {
+                      return TextFormField(
+                        focusNode: widget.passwordFocusNode,
+                        controller: widget.passwordController,
+                        autofocus: false, // ✅ Explicitly disable auto-focus
+                        decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              // ✅ Update ValueNotifier - no setState needed
+                              _isPasswordShowNotifier.value =
+                                  !_isPasswordShowNotifier.value;
+                            },
+                            icon: isPasswordShow
+                                ? Icon(Icons.remove_red_eye)
+                                : Icon(Icons.visibility_off),
+                          ),
+                          labelText: 'Password',
+                          hintText: 'Enter your password',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Password should not be empty';
+                          } else if (value.length < 8) {
+                            return 'Password must be at least 8 characters';
+                          }
+                          return null;
+                        },
+                        obscureText: isPasswordShow,
+                      );
+                    },
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => context.push('/role-selection'),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Don\'t have an account?',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w400,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => context.push('/forgotPassword'),
+                        child: const Text('Forgot Password?'),
                       ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.all(6.0),
-                      child: Text(
-                        'Sign Up',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w700,
+                    ],
+                  ),
+
+                  InkWell(
+                    onTap: widget.onLogin,
+                    child: Container(
+                      width: double.infinity,
+                      height: 45,
+                      decoration: BoxDecoration(
+                        gradient: _LoginPageConstants.buttonGradient,
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Login',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+                  GestureDetector(
+                    onTap: () => context.push('/role-selection'),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Don\'t have an account?',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.all(6.0),
+                          child: Text(
+                            'Sign Up',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24), // Added bottom padding for scroll
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

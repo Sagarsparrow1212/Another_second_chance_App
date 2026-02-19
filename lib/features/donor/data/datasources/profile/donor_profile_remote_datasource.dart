@@ -20,7 +20,8 @@ class DonorProfileRemoteDatasource {
       }
 
       log('Fetching donor profile...');
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 2));
+      log('Donor profile request: $token');
       final response = await dio.get(
         '$apiBaseUrl/donors/me',
         options: Options(

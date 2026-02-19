@@ -104,11 +104,66 @@ class _AddHomelessState extends ConsumerState<AddHomeless> {
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeOut,
       );
+      // Collect valid-looking field names that have errors
+      final errorFields = <String>[];
+
+      formState.fieldErrors.forEach((key, error) {
+        if (error != null) {
+          // Convert key to readable name
+          String fieldName = key;
+          switch (key) {
+            case 'fullName':
+              fieldName = 'Full Name';
+              break;
+            case 'dob':
+              fieldName = 'Date of Birth';
+              break;
+            case 'phone':
+              fieldName = 'Phone Number';
+              break;
+            case 'email':
+              fieldName = 'Email Address';
+              break;
+            case 'username':
+              fieldName = 'Username';
+              break;
+            case 'password':
+              fieldName = 'Password';
+              break;
+            case 'confirmPassword':
+              fieldName = 'Confirm Password';
+              break;
+            case 'commissionCut':
+              fieldName = 'Organization Cut';
+              break;
+          }
+          errorFields.add(fieldName);
+        }
+      });
+
+      // Special check for required fields that might be empty but not yet touched/validated
+      if (!isEditMode) {
+        if (formState.fullName.isEmpty && !errorFields.contains('Full Name'))
+          errorFields.add('Full Name');
+        if (formState.dateOfBirth.isEmpty &&
+            !errorFields.contains('Date of Birth'))
+          errorFields.add('Date of Birth');
+        if (formState.phone.isEmpty && !errorFields.contains('Phone Number'))
+          errorFields.add('Phone Number');
+        if (formState.email.isEmpty && !errorFields.contains('Email Address'))
+          errorFields.add('Email Address');
+        if (formState.username.isEmpty && !errorFields.contains('Username'))
+          errorFields.add('Username');
+        if (formState.password.isEmpty && !errorFields.contains('Password'))
+          errorFields.add('Password');
+      }
+
+      final errorMessage = errorFields.isNotEmpty
+          ? 'Please check: ${errorFields.join(", ")}'
+          : 'Please fill in all required fields';
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.orange,
-        ),
+        SnackBar(content: Text(errorMessage), backgroundColor: Colors.orange),
       );
       return;
     }
@@ -478,7 +533,7 @@ class _AddHomelessState extends ConsumerState<AddHomeless> {
                 controller: _commissionCutController,
                 label: 'Organization Cut',
                 icon: Icons.percent_outlined,
-                fieldKey: 'organizationCutPercentage',
+                fieldKey: 'commissionCut',
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
                   // Allow digits and one decimal point
@@ -1335,6 +1390,7 @@ class _AddHomelessState extends ConsumerState<AddHomeless> {
   }
 
   Widget _buildSubmitButton() {
+    print("object");
     final formState = ref.watch(addHomelessFormNotifierProvider);
 
     return Container(

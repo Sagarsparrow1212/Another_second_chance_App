@@ -22,7 +22,7 @@ class HomelessRemoteDatasource {
         url += '?search=$search';
       }
 
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 2));
       final response = await dio.get(url, options: Options(headers: headers));
 
       if (response.data['success'] == true) {
@@ -238,7 +238,7 @@ class HomelessRemoteDatasource {
   Future<HomelessDetailResponse> getHomelessById(String homelessId) async {
     try {
       final headers = await getHeaders();
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 2));
       final response = await dio.get(
         '$apiBaseUrl/homeless/$homelessId',
         options: Options(headers: headers),

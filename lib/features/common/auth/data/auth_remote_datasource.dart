@@ -5,15 +5,18 @@ class AuthRemoteDatasource {
   final Dio dio;
   AuthRemoteDatasource(this.dio);
 
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<Map<String, dynamic>> login(
+    String email,
+    String password, [
+    String? fcmToken,
+  ]) async {
     try {
-      print(
-        'Attempting to send OTP for password reset: otp=$email, email=$password',
-      );
-      final response = await dio.post(
-        '$apiBaseUrl/auth/login',
-        data: {"email": email, "password": password},
-      );
+      print('Attempting to login: email=$email, fcmToken=$fcmToken');
+      final data = {"email": email, "password": password};
+      if (fcmToken != null) {
+        data["fcmToken"] = fcmToken;
+      }
+      final response = await dio.post('$apiBaseUrl/auth/login', data: data);
 
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
@@ -68,6 +71,25 @@ class AuthRemoteDatasource {
       );
       // print(response.data);
 
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      final msg = e.response?.data?["message"] ?? "Something went wrong";
+      throw Exception(msg);
+    }
+  }
+
+  Future<Map<String, dynamic>> logout(String token, String fcmToken) async {
+    try {
+      final response = await dio.post(
+        '$apiBaseUrl/auth/logout',
+        data: {"fcmToken": fcmToken},
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       final msg = e.response?.data?["message"] ?? "Something went wrong";

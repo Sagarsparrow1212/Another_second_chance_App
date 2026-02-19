@@ -1,6 +1,7 @@
 class DonationModel {
   final String donationId;
   final String donorId;
+  final String? donorName;
   final String homelessId;
   final String? organizationId;
   final String donationType; // Money, Food, Clothes, Services, Other
@@ -22,6 +23,7 @@ class DonationModel {
   DonationModel({
     required this.donationId,
     required this.donorId,
+    this.donorName,
     required this.homelessId,
     this.organizationId,
     required this.donationType,
@@ -51,9 +53,17 @@ class DonationModel {
       return value.toString();
     }
 
+    String? _extractName(dynamic value) {
+      if (value is Map) {
+        return value['fullName']?.toString() ?? value['name']?.toString();
+      }
+      return null;
+    }
+
     return DonationModel(
       donationId: json['donationId'] ?? json['_id'] ?? '',
       donorId: _extractId(json['donorId']),
+      donorName: _extractName(json['donorId']),
       homelessId: _extractId(json['homelessId']),
       organizationId: json['organizationId'] != null
           ? _extractId(json['organizationId'])

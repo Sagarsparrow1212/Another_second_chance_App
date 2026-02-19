@@ -60,6 +60,60 @@ class ChatHelper {
     }
   }
 
+  static Future<String?> startChatMerchant({
+    required WidgetRef ref,
+    required BuildContext context,
+    required String merchantId,
+    required String homelessId,
+    String? merchantName,
+    String? homelessName,
+  }) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(child: AppLoader()),
+      );
+
+      // Get or create chat
+      final useCase = ref.read(chatUseCaseProvider);
+      final chat = await useCase.getOrCreateMerchantChat(
+        merchantId,
+        homelessId,
+      );
+
+      // Close loading indicator
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Navigate to chat
+      if (context.mounted) {
+        context.push('/chat/${chat.id}');
+      }
+
+      return chat.id;
+    } catch (e) {
+      // Close loading indicator if still open
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Show error message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error starting chat: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+
+      return null;
+    }
+  }
+
   /// Start a chat from current user's role
   /// Automatically determines organization/homeless IDs based on current user
   static Future<String?> startChatWithUser({
@@ -71,7 +125,7 @@ class ChatHelper {
     try {
       final userRole = await AuthStorageService.getUserRole();
       String? currentUserId;
-
+      print("targetUserID: $targetUserId");
       if (userRole == 'organization') {
         // Get organization ID from organizationBox
         final organizationBox = await Hive.openBox('organizationBox');
@@ -80,6 +134,10 @@ class ChatHelper {
         // Get homeless ID from homelessBox
         final homelessBox = await Hive.openBox('homelessBox');
         currentUserId = homelessBox.get('homelessId')?.toString();
+      } else if (userRole == 'merchant') {
+        // Get merchant ID from merchantBox
+        final merchantBox = await Hive.openBox('merchantBox');
+        currentUserId = merchantBox.get('merchantId')?.toString();
       } else {
         throw Exception(
           'Chat is only available for organization and homeless users',
@@ -107,6 +165,15 @@ class ChatHelper {
           organizationId: targetUserId,
           homelessId: currentUserId,
           organizationName: targetUserName,
+        );
+      } else if (userRole == 'merchant') {
+        // Current user is merchant, target is homeless
+        return await startChatMerchant(
+          ref: ref,
+          context: context,
+          merchantId: currentUserId,
+          homelessId: targetUserId,
+          homelessName: targetUserName,
         );
       } else {
         throw Exception(

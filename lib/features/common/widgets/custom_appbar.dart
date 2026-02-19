@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:homelyhope/core/theme/app_theme.dart';
+import 'package:homelyhope/features/common/notifications/presentation/pages/notification_page.dart';
+import 'package:lucide_icons_flutter/test_icons.dart';
 
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:homelyhope/features/common/notifications/presentation/manager/notification_provider.dart';
+
+class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final String title;
   final bool centerTitle;
   final bool showBackButton;
@@ -23,7 +28,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 20);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final topPadding = MediaQuery.of(context).padding.top;
 
@@ -50,6 +55,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     height: 50,
                     child: IconButton(
                       onPressed: () {
+                        // print("Drawer");
                         Scaffold.of(context).openDrawer();
                       },
                       icon: FaIcon(
@@ -110,10 +116,85 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
 
             // Actions or spacer
-            if (actions != null && actions!.isNotEmpty)
-              ...actions!
-            else
-              const SizedBox(width: 48),
+            if (actions != null && actions!.isNotEmpty) ...[
+              ...actions!,
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationPage(),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      FaIcon(
+                        FontAwesomeIcons.bell,
+                        size: 18,
+                        color: AppTheme.primary.withValues(alpha: 0.85),
+                      ),
+                      ref
+                          .watch(notificationProvider)
+                          .maybeWhen(
+                            data: (notifications) {
+                              final unreadCount = notifications
+                                  .where((n) => !n.isRead)
+                                  .length;
+                              if (unreadCount > 0) {
+                                return Positioned(
+                                  right: -2,
+                                  top: -2,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 8,
+                                      minHeight: 8,
+                                    ),
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                            orElse: () => const SizedBox.shrink(),
+                          ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(width: 4),
+
+              const SizedBox(width: 8),
+            ] else if (title != "Notifications") ...[
+              Builder(
+                builder: (context) => Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationPage(),
+                        ),
+                      );
+                    },
+                    icon: FaIcon(
+                      FontAwesomeIcons.bell,
+                      size: 18,
+                      color: AppTheme.primary.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ),
+              ),
+            ] else
+              SizedBox(width: 30),
           ],
         ),
       ),

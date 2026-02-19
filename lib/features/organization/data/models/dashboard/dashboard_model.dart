@@ -14,11 +14,17 @@ class DashboardSummary {
   });
 
   factory DashboardSummary.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return DashboardSummary(
-      homelessPeopleSupported: json['homelessPeopleSupported'] ?? 0,
-      // totalPostedJobs: json['totalPostedJobs'] ?? 0,
-      activeJobs: json['activeJobs'] ?? 0,
-      applicationsReceived: json['applicationsReceived'] ?? 0,
+      homelessPeopleSupported: parseInt(json['homelessPeopleSupported']),
+      // totalPostedJobs: parseInt(json['totalPostedJobs']),
+      activeJobs: parseInt(json['activeJobs']),
+      applicationsReceived: parseInt(json['applicationsReceived']),
       donationsReceived: DonationsReceived.fromJson(
         json['donationsReceived'] ?? {},
       ),
@@ -33,7 +39,16 @@ class DonationsReceived {
   DonationsReceived({required this.totalAmount, required this.count});
 
   factory DonationsReceived.fromJson(Map<String, dynamic> json) {
-    return DonationsReceived(totalAmount: 11111.5, count: json['count'] ?? 0);
+    int parseInt(dynamic value) {
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    return DonationsReceived(
+      totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0.0,
+      count: parseInt(json['count']),
+    );
   }
 }
 
@@ -51,9 +66,15 @@ class KpiCard {
   });
 
   factory KpiCard.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return KpiCard(
       title: json['title'] ?? '',
-      value: json['value'] ?? 0,
+      value: parseInt(json['value']),
       description: json['description'] ?? '',
       icon: json['icon'] ?? '',
     );

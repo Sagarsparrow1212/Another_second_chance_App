@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:homelyhope/core/theme/app_theme.dart';
+import 'dart:math' as math;
 
 /// Optimized PNG logo loader with performance improvements:
 /// - RepaintBoundary to prevent unnecessary repaints
@@ -18,20 +19,14 @@ class PngLogoLoader extends StatefulWidget {
 class _PngLogoLoaderState extends State<PngLogoLoader>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _animation;
+
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    );
-
-    // Use CurvedAnimation for smoother, more efficient animation
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-
-    _controller.repeat();
+      duration: const Duration(milliseconds: 2000), // Speed of the loop
+    )..repeat();
   }
 
   @override
@@ -42,80 +37,116 @@ class _PngLogoLoaderState extends State<PngLogoLoader>
 
   @override
   Widget build(BuildContext context) {
-    // RepaintBoundary prevents unnecessary repaints of parent widgets
-    return RepaintBoundary(
-      child: Container(
-        // color: Colors.red,
-        width: 120,
-        height: 110,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            /// Logo outline (optional)
-            Image.asset(
-              width: 80,
-              height: 80,
-              'assets/logo/homelyhope.png',
-              color: Colors.grey.shade300,
-            ),
+    // Adjust these sizes to match your specific logo's aspect ratio
+    const double logoWidth = 140;
+    const double logoHeight = 100;
 
-            /// Animated fill inside PNG - Liquid fill from bottom to top (unfilled to filled)
-            AnimatedBuilder(
-              animation: _animation,
-              builder: (_, __) {
-                return ShaderMask(
-                  shaderCallback: (bounds) {
-                    // Fill height: 0.0 = unfilled (empty), 1.0 = filled (full)
-                    final fillHeight = _animation.value.clamp(0.0, 1.0);
-                    // Calculate stops: ensure they're always in ascending order for three-color gradient
-                    // When fillHeight is 0.0, use a tiny value to ensure stops are distinct
-                    const minStop = 0.001;
-                    final topStop = fillHeight > minStop ? fillHeight : minStop;
-                    // Middle stop should be between 0.0 and topStop
-                    final middleStop = fillHeight > minStop
-                        ? fillHeight * 0.7
-                        : minStop * 0.5;
-                    return LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        AppTheme.primary, // Colored (filled) at bottom
-                        AppTheme.primary.withOpacity(0.8),
-                        AppTheme.primary.withOpacity(
-                          0,
-                        ), // Transparent (unfilled) at top
-                      ],
-                      stops: [
-                        0.0, // Always start colored at bottom
-                        middleStop, // Middle transition point
-                        topStop, // Transition point: starts near bottom, moves to top as fillHeight increases
-                      ],
-                    ).createShader(bounds);
-                  },
-                  blendMode: BlendMode.srcIn,
-                  child: Image.asset(
-                    'assets/logo/homelyhope.png',
-                    width: 80,
-                    height: 80,
-                  ),
-                );
-              },
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Text(
-                'Loading...',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: logoWidth,
+          height: logoHeight,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // 1. The Base Logo (Inactive/Grey)
+              Image.asset(
+                'assets/logo/homelyhope.png',
+                width: logoWidth,
+                color: Colors.grey.shade300,
+                fit: BoxFit.contain,
+              ),
+
+              // 2. The Animated Tracer Overlay
+              // This paints the glowing line on top of the logo
+              // 2. The Animated Tracer Overlay
+              CustomPaint(
+                size: Size(logoWidth, logoHeight),
+                painter: _InfinityTracerPainter(
+                  animationValue: _controller,
+                  color: Color(0xFF004d61),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+        const SizedBox(height: 16),
+
+        // 3. Loading Text
+        Text(
+          "Loading...",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade800,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ],
     );
+  }
+}
+
+class _InfinityTracerPainter extends CustomPainter {
+  final Animation<double> animationValue;
+  final Color color;
+
+  _InfinityTracerPainter({required this.animationValue, required this.color})
+    : super(repaint: animationValue);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..style = PaintingStyle.fill
+      ..strokeCap = StrokeCap.round;
+
+    // Center point of the canvas
+    final double cx = size.width / 2;
+    final double cy = size.height / 2;
+
+    // --- IMPORTANT: Adjust this value to fit your logo ---
+    // 'a' controls how wide the infinity loops are.
+    // Start with 0.4 and increase/decrease it to match your image perfectly.
+    final double a = size.width * 0.4;
+
+    // We draw a "comet tail" effect with multiple dots
+    const int tailLength = 25;
+
+    for (int i = 0; i < tailLength; i++) {
+      // Calculate the position of each dot along the path
+      // We subtract a small amount from the animation value to create the tail
+      double t = (animationValue.value * 2 * math.pi) - (i * 0.04);
+
+      // Calculate opacity: The head is fully opaque, the tail fades out
+      double opacity = (1.0 - (i / tailLength)).clamp(0.0, 1.0);
+
+      // --- Lemniscate of Bernoulli Formula (Infinity Shape) ---
+      double denom = 1 + math.pow(math.sin(t), 2).toDouble();
+      double x = (a * math.cos(t)) / denom;
+      double y = (a * math.sin(t) * math.cos(t)) / denom;
+
+      Offset dotPosition = Offset(cx + x, cy + y);
+
+      // Draw the main dot
+      paint.color = color.withOpacity(opacity);
+      // The head dot is larger than the tail dots
+      double radius = i == 0 ? 5.0 : 3.0;
+      canvas.drawCircle(dotPosition, radius, paint);
+
+      // Add a glow effect only to the head of the comet
+      if (i == 0) {
+        final Paint glowPaint = Paint()
+          ..color = color.withOpacity(0.5)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
+        canvas.drawCircle(dotPosition, 8.0, glowPaint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _InfinityTracerPainter oldDelegate) {
+    return true; // Always repaint to show the animation
   }
 }
 

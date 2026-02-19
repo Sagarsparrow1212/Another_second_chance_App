@@ -26,7 +26,7 @@ class MyProfileRemoteDatasource {
         '$apiBaseUrl/homeless/me',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
-
+      print('$apiBaseUrl/homeless/me');
       if (response.data['success'] == true) {
         return HomelessModel.fromJson(response.data['data']);
       }

@@ -9,8 +9,10 @@ import 'package:homelyhope/core/theme/app_theme.dart';
 import 'package:homelyhope/features/common/widgets/custom_appbar.dart';
 import 'package:homelyhope/features/common/widgets/divider.dart';
 import 'package:homelyhope/features/donor/data/datasources/homeless_people/homeless_remote_datasource.dart';
-import 'package:homelyhope/features/donor/data/models/donation/donation_model.dart';
-import 'package:homelyhope/features/donor/presentation/donation/providers/donation_provider.dart';
+
+import 'package:homelyhope/features/donor/data/models/payment/payment_success_request.dart';
+import 'package:homelyhope/features/donor/presentation/payment/providers/payment_provider.dart';
+import 'package:homelyhope/features/donor/presentation/dashboard/providers/donor_dashboard_provider.dart';
 import 'package:http/http.dart' as http;
 
 class DonorHomelessDonatePage extends ConsumerStatefulWidget {
@@ -131,16 +133,39 @@ class _DonorHomelessDonatePageState
 
       // 3️⃣ Present PaymentSheet
       await Stripe.instance.presentPaymentSheet();
+
+      // 4️⃣ Call Backend to Save Donation
+      final request = PaymentSuccessRequest(
+        paymentIntentId: data['paymentIntentId'] ?? '',
+        homelessId: widget.homeless.id,
+        donationType: 'Money',
+        message: _descriptionController.text,
+        isAnonymous: false,
+      );
+
+      await ref
+          .read(paymentNotifierProvider.notifier)
+          .confirmPaymentSuccess(request);
+
+      // Invalidate dashboard stats to force refresh
+      ref.invalidate(donorDashboardStatsProvider);
+
       setState(() {
         _isSubmitting = false;
       });
       debugPrint("✅ Payment successful");
+      if (mounted) {
+        ref.read(snackbarServiceProvider).showSuccess('Payment successful!');
+        Navigator.pop(context);
+      }
     } catch (e) {
-      setState(() {
-        _isSubmitting = false;
-      });
-      ref.read(snackbarServiceProvider).showError('Payment failed: $e');
-      debugPrint("❌ Payment failed: $e");
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        ref.read(snackbarServiceProvider).showError('Payment failed: $e');
+        debugPrint("❌ Payment failed: $e");
+      }
     }
   }
 

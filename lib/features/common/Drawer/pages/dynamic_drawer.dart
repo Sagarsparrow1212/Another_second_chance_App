@@ -103,6 +103,12 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
       role: 'organization',
     ),
     DrawerItem(
+      title: 'Wallet',
+      icon: LucideIcons.wallet,
+      route: '/organization/wallet',
+      role: 'organization',
+    ),
+    DrawerItem(
       title: 'My Profile',
       icon: LucideIcons.user,
       route: '/organization/my-profile',

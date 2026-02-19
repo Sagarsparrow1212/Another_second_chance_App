@@ -1097,40 +1097,40 @@ class _OrganizationTableState extends ConsumerState<OrganizationTable> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  // const SizedBox(width: 12),
                                   // Contact button (outlined)
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        side: BorderSide(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 12,
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        // TODO: Contact organization
-                                      },
-                                      icon: Icon(
-                                        Icons.message_outlined,
-                                        size: 18,
-                                        color: Colors.grey[700],
-                                      ),
-                                      label: Text(
-                                        'Contact',
-                                        style: TextStyle(
-                                          color: Colors.grey[700],
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                  // Expanded(
+                                  //   child: OutlinedButton.icon(
+                                  //     style: OutlinedButton.styleFrom(
+                                  //       shape: RoundedRectangleBorder(
+                                  //         borderRadius: BorderRadius.circular(
+                                  //           12,
+                                  //         ),
+                                  //       ),
+                                  //       side: BorderSide(
+                                  //         color: Colors.grey.shade300,
+                                  //       ),
+                                  //       padding: const EdgeInsets.symmetric(
+                                  //         vertical: 12,
+                                  //       ),
+                                  //     ),
+                                  //     onPressed: () {
+                                  //       // TODO: Contact organization
+                                  //     },
+                                  //     icon: Icon(
+                                  //       Icons.message_outlined,
+                                  //       size: 18,
+                                  //       color: Colors.grey[700],
+                                  //     ),
+                                  //     label: Text(
+                                  //       'Contact',
+                                  //       style: TextStyle(
+                                  //         color: Colors.grey[700],
+                                  //         fontWeight: FontWeight.w600,
+                                  //       ),
+                                  //     ),
+                                  //   ),
+                                  // ),
                                 ],
                               ),
                             ],

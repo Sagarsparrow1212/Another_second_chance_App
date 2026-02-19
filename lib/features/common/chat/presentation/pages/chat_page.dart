@@ -114,6 +114,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             _currentUserRole = 'homeless';
           });
         }
+      } else if (role == 'merchant') {
+        final merchantBox = await Hive.openBox('merchantBox');
+        final merchantDetails = merchantBox.get('merchantDetails');
+        if (merchantDetails != null) {
+          setState(() {
+            _currentUserRole = 'merchant';
+          });
+        }
       }
       if (mounted) {
         setState(() {
@@ -126,11 +134,23 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   /// Load the chat partner's details (the other user in the conversation)
-  void _loadChatPartnerDetails() {
+  Future<void> _loadChatPartnerDetails() async {
     try {
       final localDatasource = ref.read(chatLocalDatasourceProvider);
-      final chat = localDatasource.getChat(widget.chatId);
-
+      var chat = localDatasource.getChat(widget.chatId);
+      print(chat == null);
+      // If chat is not found locally, try to fetch all chats to update cache
+      if (chat == null) {
+        try {
+          // Fetch from server
+          await ref.read(chatUseCaseProvider).getAllChats();
+          // Try to get from local again
+          chat = localDatasource.getChat(widget.chatId);
+        } catch (e) {
+          // Ignore error, will stay as loading/null
+        }
+      }
+      print(chat?.homeless?.displayName);
       if (chat == null) {
         return;
       }
@@ -143,9 +163,22 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       } else if (_currentUserRole == 'homeless') {
         // Current user is homeless, so partner is organization
         chatPartner = chat.organization;
+      } else if (_currentUserRole == 'merchant') {
+        // Current user is merchant, so partner is homeless
+        chatPartner = chat.homeless;
+      } else {
+        // Fallback: if role not set yet, try to guess or show unknown
+        // Or if we created the chat as a merchant, we are the organization
+        if (_currentUserId == chat.organization?.id) {
+          chatPartner = chat.homeless;
+        } else if (_currentUserId == chat.homeless?.id) {
+          chatPartner = chat.organization;
+        }
       }
 
       if (chatPartner != null && mounted) {
+        print(chatPartner.displayName);
+        //  print(chatPartner.getAvatarUrl());
         setState(() {
           _chatPartnerName = chatPartner!.displayName;
           _chatPartnerPhotoUrl = chatPartner.getAvatarUrl();

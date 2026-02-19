@@ -31,6 +31,12 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     _loadUserRole();
     ref.read(allChatsProvider.future);
     _setupWebSocket();
+    loadchats();
+  }
+
+  void loadchats() async {
+    await Future.delayed(const Duration(seconds: 2));
+    ref.invalidate(allChatsProvider);
   }
 
   @override
@@ -228,6 +234,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
 
   Future<void> _loadUserRole() async {
     final role = await AuthStorageService.getUserRole();
+    // await Future.delayed(const Duration(seconds: 2));
     setState(() {
       _userRole = role;
     });
@@ -252,6 +259,8 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       return chat.homeless;
     } else if (_userRole == 'homeless') {
       return chat.organization;
+    } else if (_userRole == 'merchant') {
+      return chat.homeless;
     }
     return null;
   }
@@ -279,6 +288,10 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       }
     });
 
+    // if (_userRole == null) {
+    //   return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    // }
+
     final chatsAsync = ref.watch(allChatsProvider);
 
     return RefreshIndicator(
@@ -289,164 +302,171 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       child: Scaffold(
         drawer: AppDrawer(),
         appBar: CustomAppBar(title: 'Messages'),
-        body: chatsAsync.when(
-          data: (chats) {
-            if (chats.isEmpty) {
-              return const Center(
-                child: Text(
-                  'No chats yet',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color.fromARGB(255, 14, 9, 9),
-                  ),
-                ),
-              );
-            }
-
-            return ListView.builder(
-              itemCount: chats.length,
-              itemBuilder: (context, index) {
-                final chat = chats[index];
-                final partner = _getChatPartner(chat);
-
-                return InkWell(
-                  onTap: () {
-                    context.push('/chat/${chat.id}');
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Colors.grey.shade200,
-                          width: 0.5,
+        body: _userRole == null
+            ? const Center(child: AppLoader())
+            : chatsAsync.when(
+                data: (chats) {
+                  if (chats.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No chats yet',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Color.fromARGB(255, 14, 9, 9),
                         ),
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        // Avatar
-                        CircleAvatar(
-                          radius: 28,
-                          backgroundColor: Colors.grey.shade300,
-                          backgroundImage: partner?.getAvatarUrl() != null
-                              ? NetworkImage(partner!.getAvatarUrl()!)
-                              : null,
-                          child: partner?.getAvatarUrl() == null
-                              ? Text(
-                                  partner?.displayName[0].toUpperCase() ?? '?',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                              : null,
-                        ),
-                        const SizedBox(width: 12),
-                        // Chat info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      partner?.displayName ?? 'Unknown',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (chat.updatedAt != null)
-                                    Text(
-                                      _formatTime(chat.updatedAt!),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                ],
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: chats.length,
+                    itemBuilder: (context, index) {
+                      final chat = chats[index];
+                      final partner = _getChatPartner(chat);
+
+                      return InkWell(
+                        onTap: () {
+                          context.push('/chat/${chat.id}');
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.grey.shade200,
+                                width: 0.5,
                               ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      chat.lastMessage?.text ??
-                                          'No messages yet',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade700,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (chat.unreadCount > 0)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        '${chat.unreadCount}',
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              // Avatar
+                              CircleAvatar(
+                                radius: 28,
+                                backgroundColor: Colors.grey.shade300,
+                                backgroundImage: partner?.getAvatarUrl() != null
+                                    ? NetworkImage(partner!.getAvatarUrl()!)
+                                    : null,
+                                child: partner?.getAvatarUrl() == null
+                                    ? Text(
+                                        partner?.displayName[0].toUpperCase() ??
+                                            '?',
                                         style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
+                                          fontSize: 20,
                                           fontWeight: FontWeight.bold,
                                         ),
-                                      ),
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 12),
+                              // Chat info
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            partner?.displayName ?? 'Unknown',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (chat.updatedAt != null)
+                                          Text(
+                                            _formatTime(chat.updatedAt!),
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                      ],
                                     ),
-                                ],
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            chat.lastMessage?.text ??
+                                                'No messages yet',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade700,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (chat.unreadCount > 0)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.blue,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              '${chat.unreadCount}',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: AppLoader()),
+                error: (error, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Error loading chats: $error',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          ref.invalidate(allChatsProvider);
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
                   ),
-                );
-              },
-            );
-          },
-          loading: () => Center(child: AppLoader()),
-          error: (error, stack) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Error loading chats',
-                  style: TextStyle(color: Colors.red),
                 ),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    ref.invalidate(allChatsProvider);
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            print('pushing to start chat list page');
-            context.push('/chat/start');
-          },
-          child: FaIcon(FontAwesomeIcons.plus),
-        ),
+              ),
+        floatingActionButton: _userRole == 'homeless' || _userRole == 'merchant'
+            ? null
+            : FloatingActionButton(
+                onPressed: () {
+                  print('pushing to start chat list page');
+                  context.push('/chat/start');
+                },
+                child: FaIcon(FontAwesomeIcons.plus),
+              ),
       ),
     );
   }

@@ -123,7 +123,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       ref
           .read(snackbarServiceProvider)
           .showSuccess('Password Reset Successfully');
-      // context.pop();
+      context.pop();
     } else {
       ref.read(snackbarServiceProvider).showError('Password Reset Failed');
     }
@@ -213,7 +213,7 @@ class _ForgotPasswordBackground extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const SizedBox(height: 50),
+          const SizedBox(height: 30),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -229,11 +229,20 @@ class _ForgotPasswordBackground extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: titleSpacing),
-          const Text(
-            'HomelyHope',
+          if (MediaQuery.of(context).size.height > 680)
+            SizedBox(height: titleSpacing),
+          //SizedBox(height: titleSpacing),
+          Image.asset(
+            'assets/logo/homelyhope.png',
+            height: 60,
+            width: 100,
+            color: Colors.white,
+            fit: BoxFit.cover,
+          ),
+          Text(
+            'Another Second Chance',
             style: TextStyle(
-              fontSize: 32,
+              fontSize: 20,
               fontFamily: 'Poppins',
               color: Colors.white,
               fontWeight: FontWeight.w700,
@@ -258,7 +267,7 @@ class _ForgotPasswordMiddleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final horizontalPadding = screenWidth * 0.07;
-    final topMargin = screenHeight * 0.275;
+    final topMargin = screenHeight * 0.315;
     final containerHeight = screenHeight * 0.73;
 
     return Padding(
@@ -322,13 +331,16 @@ class ForgotPasswordFormCard extends ConsumerStatefulWidget {
 
 class _ForgotPasswordFormCardState
     extends ConsumerState<ForgotPasswordFormCard> {
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(forgotPasswordProvider);
     print('ForgotPasswordFormCard rebuild ${state.isShowOtpField}');
     final notifier = ref.read(forgotPasswordProvider.notifier);
     final theme = Theme.of(context);
-    final bottomContainerHeight = widget.screenHeight * 0.70;
+    final bottomContainerHeight = widget.screenHeight * 0.66;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -408,7 +420,7 @@ class _ForgotPasswordFormCardState
                                 const Icon(
                                   size: 14,
                                   Icons.arrow_forward_ios_outlined,
-                                  color: Colors.purple,
+                                  color: Colors.blueAccent,
                                 ),
                                 const SizedBox(width: 4),
                               ],
@@ -537,24 +549,34 @@ class _ForgotPasswordFormCardState
                         //   });
                         // },
                         defaultPinTheme: PinTheme(
-                          height: 45,
+                          height: 55,
                           width: 55,
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey),
                             borderRadius: BorderRadius.circular(12),
+                          ),
+
+                          textStyle: TextStyle(
+                            fontSize: 18,
+                            //                            color: Colors.black,
                           ),
                         ),
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
                         closeKeyboardWhenCompleted: false,
+
                         keyboardType: TextInputType.number,
                         focusedPinTheme: PinTheme(
-                          height: 45,
+                          height: 55,
                           width: 55,
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.purple),
+                            border: Border.all(color: Colors.blueAccent),
                             borderRadius: BorderRadius.circular(12),
+                          ),
+                          textStyle: TextStyle(
+                            fontSize: 18,
+                            //                            color: Colors.black,
                           ),
                         ),
                       )
@@ -575,7 +597,10 @@ class _ForgotPasswordFormCardState
                     ),
                     child: Center(
                       child: state.isLoading
-                          ? SizedBox(height: 20, width: 20, child: AppLoader())
+                          ? const CircularProgressIndicator(
+                              color: Colors.white,
+                              padding: EdgeInsets.all(8),
+                            )
                           : !state.isShowOtpField
                           ? const Text(
                               'Send OTP',
@@ -620,7 +645,8 @@ class _ForgotPasswordFormCardState
                   key: const ValueKey('password_field'),
 
                   controller: widget.passwordController,
-                  keyboardType: TextInputType.emailAddress,
+                  obscureText: !_isPasswordVisible,
+                  keyboardType: TextInputType.visiblePassword,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 12,
@@ -632,7 +658,19 @@ class _ForgotPasswordFormCardState
                     ),
                     labelText: 'New Password',
                     hintText: 'Enter your new password',
-
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        !_isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -653,7 +691,8 @@ class _ForgotPasswordFormCardState
                   key: const ValueKey('confirm_password_field'),
 
                   controller: widget.passwordConfirmController,
-                  keyboardType: TextInputType.emailAddress,
+                  obscureText: !_isConfirmPasswordVisible,
+                  keyboardType: TextInputType.visiblePassword,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 12,
@@ -665,6 +704,20 @@ class _ForgotPasswordFormCardState
                     ),
                     labelText: 'Confirm Password',
                     hintText: 'Enter your confirm password',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        !_isConfirmPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isConfirmPasswordVisible =
+                              !_isConfirmPasswordVisible;
+                        });
+                      },
+                    ),
                     // prefixIcon: const Icon(Icons.email_outlined, size: 18),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),

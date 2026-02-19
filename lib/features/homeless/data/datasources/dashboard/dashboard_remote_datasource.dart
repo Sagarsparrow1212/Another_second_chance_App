@@ -14,7 +14,7 @@ class HomelessDashboardRemoteDatasource {
       print('headers: $headers');
       final url = '$apiBaseUrl/dashboard/homeless';
       print('url: $url');
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 2));
       final response = await dio.get(url, options: Options(headers: headers));
       print('response: ${response.data}');
       if (response.data['success'] == true) {

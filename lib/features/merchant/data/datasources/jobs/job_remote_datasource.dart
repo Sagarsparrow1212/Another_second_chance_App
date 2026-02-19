@@ -20,7 +20,7 @@ class JobsMerchantRemoteDatasource {
         throw Exception('Token is null');
       }
       log('apiBaseUrl: $apiBaseUrl');
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 2));
       final response = await dio.get(
         '$apiBaseUrl/merchants/$merchantId/jobs',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
@@ -96,6 +96,34 @@ class JobsMerchantRemoteDatasource {
     } on DioException catch (e) {
       log('Update job error: ${e.response?.data}');
       final msg = e.response?.data?['message'] ?? 'Failed to update job';
+      throw Exception(msg);
+    }
+  }
+
+  /// Delete a job posting
+  Future<void> deleteJob(String jobId) async {
+    try {
+      final token = await _secureStorage.read(key: 'token');
+      if (token == null) {
+        throw Exception('Authentication token not found. Please login again.');
+      }
+
+      log('Deleting job $jobId');
+
+      final response = await dio.delete(
+        '$apiBaseUrl/jobs/$jobId',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      log('Delete job response: ${response.data}');
+    } on DioException catch (e) {
+      log('Delete job error: ${e.response?.data}');
+      final msg = e.response?.data?['message'] ?? 'Failed to delete job';
       throw Exception(msg);
     }
   }

@@ -373,7 +373,7 @@ class _DonationHistoryPageState extends ConsumerState<DonationHistoryPage> {
                         children: [
                           Expanded(
                             child: Text(
-                              donation.donationType,
+                              donation.donorName ?? donation.donationType,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

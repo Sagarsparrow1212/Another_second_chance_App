@@ -8,6 +8,7 @@ import '../../../../common/widgets/custom_appbar.dart';
 import '../../../data/models/jobs/jobs_model.dart';
 import '../providers/add_job_provider.dart';
 import '../providers/jobs_merchant_provider.dart';
+import 'package:homelyhope/core/providers/snackbar_provider.dart';
 
 class AddJobPage extends ConsumerStatefulWidget {
   /// Optional job to edit. If null, the form is in "Add" mode.
@@ -86,12 +87,7 @@ class _AddJobPageState extends ConsumerState<AddJobPage> {
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a category'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ref.read(snackbarServiceProvider).showError('Please select a category');
       return;
     }
 
@@ -127,27 +123,19 @@ class _AddJobPageState extends ConsumerState<AddJobPage> {
         // Refresh the jobs list
         ref.invalidate(jobsMerchantListProvider);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
+        ref
+            .read(snackbarServiceProvider)
+            .showSuccess(
               isEditMode
                   ? 'Job updated successfully!'
                   : 'Job created successfully!',
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
+            );
 
         context.pop(true); // Return true to indicate success
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ref.read(snackbarServiceProvider).showError('Error: ${e.toString()}');
       }
     } finally {
       if (mounted) {
@@ -167,7 +155,6 @@ class _AddJobPageState extends ConsumerState<AddJobPage> {
         showBackButton: true,
       ),
       body: SingleChildScrollView(
-        
         padding: EdgeInsets.only(
           top: topPadding + 80,
           left: 16,

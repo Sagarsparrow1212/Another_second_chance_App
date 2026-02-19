@@ -34,7 +34,7 @@ class DonorRemoteDatasource {
       if (token == null) {
         throw Exception('Token is null');
       }
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 2));
       final response = await dio.get(
         '$apiBaseUrl/organizations/me',
         options: Options(headers: {'Authorization': 'Bearer $token'}),

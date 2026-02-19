@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:homelyhope/core/contanst/contanst.dart';
 import 'package:homelyhope/core/theme/app_theme.dart';
 import 'package:homelyhope/features/common/Drawer/pages/dynamic_drawer.dart';
+import 'package:homelyhope/features/homeless/presentation/jobs/pages/job_history_page.dart';
 import 'package:homelyhope/features/organization/presentation/jobs/providers/jobs_provider.dart';
 import 'package:homelyhope/features/organization/data/models/jobs/jobs_model.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +12,8 @@ import 'package:intl/intl.dart';
 import '../../../../common/auth/data/services/auth_storage_service.dart';
 import '../../../../common/widgets/custom_appbar.dart';
 import '../../../../common/widgets/divider.dart';
+import 'package:homelyhope/features/homeless/presentation/jobs/widgets/application_sending_dialog.dart';
+import 'package:homelyhope/features/homeless/presentation/jobs/widgets/application_success_dialog.dart';
 
 class JobsPage extends ConsumerStatefulWidget {
   const JobsPage({super.key});
@@ -152,7 +155,23 @@ class _JobsPageState extends ConsumerState<JobsPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       drawer: AppDrawer(),
-      appBar: CustomAppBar(title: 'Available Jobs'),
+      appBar: CustomAppBar(
+        title: 'Available Jobs',
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.history,
+              color: AppTheme.primary.withValues(alpha: 0.85),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const JobHistoryPage()),
+              );
+            },
+          ),
+        ],
+      ),
       body: jobsAsync.when(
         loading: () => Center(child: AppLoader()),
         error: (error, stack) => Center(
@@ -741,15 +760,7 @@ class _JobsPageState extends ConsumerState<JobsPage> {
                                   elevation: 0,
                                 ),
                                 onPressed: () {
-                                  // TODO: Navigate to apply for job
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Applying for ${job.title}...',
-                                      ),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
+                                  _confirmAndApply(context, ref, job);
                                 },
                                 icon: const Icon(
                                   Icons.send_outlined,
@@ -869,25 +880,205 @@ class _JobsPageState extends ConsumerState<JobsPage> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Applying for ${job.title}...'),
-                  backgroundColor: Colors.green,
+          Consumer(
+            builder: (context, ref, child) {
+              return ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _confirmAndApply(context, ref, job);
+                },
+                child: const Text(
+                  'Apply Now',
+                  style: TextStyle(color: Colors.white),
                 ),
               );
             },
-            child: const Text(
-              'Apply Now',
-              style: TextStyle(color: Colors.white),
-            ),
           ),
         ],
       ),
     );
+  }
+
+  void _confirmAndApply(
+    BuildContext context,
+    WidgetRef ref,
+    JobModel job,
+  ) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.rocket_launch_rounded,
+                  size: 32,
+                  color: Colors.blue,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Title
+              const Text(
+                'Ready to Apply?',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              // Content
+              RichText(
+                textAlign: TextAlign.justify,
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey.shade600,
+                    height: 1.5,
+                  ),
+                  children: [
+                    const TextSpan(text: 'You are about to apply for '),
+                    TextSpan(
+                      text: job.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const TextSpan(
+                      text:
+                          '. Make sure your profile is up to date before proceeding.',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              // Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        foregroundColor: Colors.grey.shade700,
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        elevation: 2,
+                        shadowColor: AppTheme.primary.withValues(alpha: 0.4),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Confirm',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (confirm == true && context.mounted) {
+      // 1. Show Sending Dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => ApplicationSendingDialog(
+          companyName: job.merchant?.businessName ?? 'the company',
+        ),
+      );
+
+      try {
+        // 2. Perform API Call
+        await ref.read(applyJobProvider(job.id).future);
+
+        // Artificial delay for animation to be seen if API is too fast
+        await Future.delayed(const Duration(seconds: 2));
+
+        if (context.mounted) {
+          // 3. Close Sending Dialog
+          Navigator.of(context).pop();
+
+          // 4. Show Success Dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => ApplicationSuccessDialog(
+              jobTitle: job.title,
+              companyName: job.merchant?.businessName ?? 'the company',
+            ),
+          );
+
+          // Refresh job history
+          ref.invalidate(jobHistoryProvider);
+        }
+      } catch (e) {
+        if (context.mounted) {
+          // Close Sending Dialog
+          Navigator.of(context).pop();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to apply: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   Widget _buildDialogRow(String label, String value) {

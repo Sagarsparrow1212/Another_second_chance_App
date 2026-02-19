@@ -9,12 +9,25 @@ import 'package:homelyhope/core/routing/app_router.dart';
 import 'package:homelyhope/core/theme/app_theme.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:homelyhope/firebase_options.dart';
+import 'package:homelyhope/core/services/notification_service.dart';
+import 'package:homelyhope/features/common/auth/presentation/login_page.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Set the background messaging handler early on, as a named top-level function
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Initialize Notification Service
+  await NotificationService.instance.init();
+
   //Assign publishable key to flutter_stripe
-  Stripe.publishableKey =
-      'pk_test_51Smq6qAprVPeX2Q9lMjU1xSOnnCjIrBPni4tFpeH8PgKxxG33pJSCNXGM2ykaXJUn0US2bKFa2y2pEj9t7WrCFlc00AYls1pj1';
+  Stripe.publishableKey = 'pk_test_pFdgV81w4gpee3K96QghDMXO00UkXAj2Nr';
   await Stripe.instance.applySettings();
   await Hive.initFlutter();
   await Hive.openBox('authBox');

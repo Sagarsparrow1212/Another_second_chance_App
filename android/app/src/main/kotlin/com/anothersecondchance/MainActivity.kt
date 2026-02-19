@@ -1,4 +1,4 @@
-package com.example.homelyhope
+package com.anothersecondchance
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.android.FlutterFragmentActivity

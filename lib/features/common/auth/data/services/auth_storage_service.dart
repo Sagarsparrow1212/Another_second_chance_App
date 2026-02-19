@@ -38,19 +38,19 @@ class AuthStorageService {
       // Note: API returns 'id' not '_id', but checking both for compatibility
       final userId = user['_id'] ?? user['id'];
       if (userId != null) {
-        authBox.put('userId', userId.toString());
+        await authBox.put('userId', userId.toString());
 
         final userBox = await Hive.openBox(_userBoxName);
-        userBox.put('userId', userId.toString());
-        userBox.put('email', user['email'] ?? '');
-        userBox.put('role', user['role'] ?? '');
-        userBox.put('isLoggedIn', true);
-        userBox.put('isVerified', user['isVerified'] ?? false);
+        await userBox.put('userId', userId.toString());
+        await userBox.put('email', user['email'] ?? '');
+        await userBox.put('role', user['role'] ?? '');
+        await userBox.put('isLoggedIn', true);
+        await userBox.put('isVerified', user['isVerified'] ?? false);
       }
 
-      authBox.put('email', user['email'] ?? '');
-      authBox.put('role', user['role'] ?? '');
-      authBox.put('isLoggedIn', true);
+      await authBox.put('email', user['email'] ?? '');
+      await authBox.put('role', user['role'] ?? '');
+      await authBox.put('isLoggedIn', true);
 
       // Optionally save organization data if available
       if (user['role'] == 'organization') {
@@ -58,12 +58,12 @@ class AuthStorageService {
         if (organization != null) {
           final organizationBox = await Hive.openBox(_organizationBoxName);
           // i want to save the organization details to the organizationBox
-          organizationBox.put('organizationDetails', organization);
-          organizationBox.put(
+          await organizationBox.put('organizationDetails', organization);
+          await organizationBox.put(
             'organizationId',
             organization['id']?.toString() ?? '',
           );
-          organizationBox.put(
+          await organizationBox.put(
             'organizationName',
             organization['orgName'] ?? '',
           );
@@ -72,25 +72,25 @@ class AuthStorageService {
         final merchant = data['merchant'] as Map<String, dynamic>?;
         if (merchant != null) {
           final merchantBox = await Hive.openBox(_merchantBoxName);
-          merchantBox.put('merchantId', merchant['id']?.toString() ?? '');
-          merchantBox.put('merchantName', merchant['merchantName'] ?? '');
-          merchantBox.put('merchantDetails', merchant);
+          await merchantBox.put('merchantId', merchant['id']?.toString() ?? '');
+          await merchantBox.put('merchantName', merchant['merchantName'] ?? '');
+          await merchantBox.put('merchantDetails', merchant);
         }
       } else if (user['role'] == 'homeless') {
         final homeless = data['homeless'] as Map<String, dynamic>?;
         if (homeless != null) {
           final homelessBox = await Hive.openBox(_homelessBoxName);
-          homelessBox.put('homelessId', homeless['id']?.toString() ?? '');
-          homelessBox.put('homelessName', homeless['homelessName'] ?? '');
-          homelessBox.put('homelessDetails', homeless);
+          await homelessBox.put('homelessId', homeless['id']?.toString() ?? '');
+          await homelessBox.put('homelessName', homeless['homelessName'] ?? '');
+          await homelessBox.put('homelessDetails', homeless);
         }
       } else if (user['role'] == 'donor') {
         final donor = data['donor'] as Map<String, dynamic>?;
         if (donor != null) {
           final donorBox = await Hive.openBox(_donorBoxName);
-          donorBox.put('donorId', donor['id']?.toString() ?? '');
-          donorBox.put('donorName', donor['donorName'] ?? '');
-          donorBox.put('donorDetails', donor);
+          await donorBox.put('donorId', donor['id']?.toString() ?? '');
+          await donorBox.put('donorName', donor['donorName'] ?? '');
+          await donorBox.put('donorDetails', donor);
         }
       }
     } catch (e) {

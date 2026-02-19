@@ -187,7 +187,7 @@ class DonorHomelessRemoteDatasource {
   ) async {
     try {
       final headers = await getHeaders();
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 2));
       final url = '$apiBaseUrl/homeless/organization/$organizationId';
 
       final response = await dio.get(url, options: Options(headers: headers));
@@ -232,7 +232,7 @@ class DonorHomelessRemoteDatasource {
   }) async {
     try {
       final headers = await getHeaders();
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 2));
       final url = '$apiBaseUrl/homeless?page=$page&limit=$limit';
 
       final response = await dio.get(url, options: Options(headers: headers));

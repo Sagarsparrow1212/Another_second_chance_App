@@ -10,6 +10,7 @@ import '../../features/merchant/presentation/routes/merchant_routes.dart';
 import '../../features/homeless/presentation/routes/homeless_routes.dart';
 import '../../features/donor/presentation/routes/donor_routes.dart';
 import '../../features/common/chat/presentation/routes/chat_routes.dart';
+import '../../features/debug/presentation/pages/firestore_test_screen.dart';
 
 final appRoutesObserver = AppRoutesObserver();
 
@@ -37,6 +38,10 @@ final appRouter = GoRouter(
     ...homelessRoutes,
     ...donorRoutes,
     ...chatRoutes,
+    GoRoute(
+      path: '/firestore-test',
+      builder: (context, state) => const FirestoreTestScreen(),
+    ),
   ],
   redirect: (context, state) async {
     final isLoggedIn = await AuthStorageService.isLoggedIn();
@@ -45,7 +50,7 @@ final appRouter = GoRouter(
     final userRole = await AuthStorageService.getUserRole();
 
     // Allow splash screen to be shown without redirect
-    if (currentPath == '/splashscreen') {
+    if (currentPath == '/splashscreen' || currentPath == '/firestore-test') {
       return null;
     }
 

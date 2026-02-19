@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "831791724470",
+    "project_id": "another-second-chance",
+    "storage_bucket": "another-second-chance.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831791724470:android:76b0112d93a7405231b317",
+        "android_client_info": {
+          "package_name": "com.anothersecondchance"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOPTsOwY3Sc_lrR_2LOEt6wlF3BSp60J0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

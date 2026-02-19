@@ -8,12 +8,12 @@ import 'package:homelyhope/core/theme/app_theme.dart';
 import 'package:homelyhope/pngloader.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
-final String baseUrl = 'http://192.168.1.64:5000';
+final String baseUrl = 'http://192.168.1.58:5000';
 
 final String apiBaseUrl = '$baseUrl/api/v1';
 
 final String organizationDocumentBaseUrl =
-    'http://192.168.1.64:5000/uploads/organizations';
+    'http://192.168.1.58:5000/uploads/organizations';
 
 Future<Map<String, String>> getHeaders() async {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();

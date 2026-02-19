@@ -335,49 +335,49 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
                     ),
                 ],
               ),
-              const SizedBox(height: 12),
+              //const SizedBox(height: 12),
 
               // Verification Badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: profile.verified == true
-                      ? Colors.green.withValues(alpha: 0.2)
-                      : Colors.orange.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: profile.verified == true
-                        ? Colors.green.withValues(alpha: 0.5)
-                        : Colors.orange.withValues(alpha: 0.5),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      profile.verified == true
-                          ? Icons.verified
-                          : Icons.pending_outlined,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      profile.verified == true
-                          ? 'Verified'
-                          : 'Pending Verification',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Container(
+              //   padding: const EdgeInsets.symmetric(
+              //     horizontal: 16,
+              //     vertical: 6,
+              //   ),
+              //   decoration: BoxDecoration(
+              //     color: profile.verified == true
+              //         ? Colors.green.withValues(alpha: 0.2)
+              //         : Colors.orange.withValues(alpha: 0.2),
+              //     borderRadius: BorderRadius.circular(20),
+              //     border: Border.all(
+              //       color: profile.verified == true
+              //           ? Colors.green.withValues(alpha: 0.5)
+              //           : Colors.orange.withValues(alpha: 0.5),
+              //     ),
+              //   ),
+              //   child: Row(
+              //     mainAxisSize: MainAxisSize.min,
+              //     children: [
+              //       Icon(
+              //         profile.verified == true
+              //             ? Icons.verified
+              //             : Icons.pending_outlined,
+              //         size: 16,
+              //         color: Colors.white,
+              //       ),
+              //       const SizedBox(width: 6),
+              //       Text(
+              //         profile.verified == true
+              //             ? 'Verified'
+              //             : 'Pending Verification',
+              //         style: const TextStyle(
+              //           fontSize: 12,
+              //           fontWeight: FontWeight.w600,
+              //           color: Colors.white,
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ),

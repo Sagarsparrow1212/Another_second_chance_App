@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
-import '../../../organization/presentation/homeless_people/pages/homeless_table.dart';
+// import '../../../organization/presentation/homeless_people/pages/homeless_table.dart';
+import '../applicants/pages/applicants_page.dart';
 import '../myprofile/pages/myprofile_page.dart';
 import '../dashboard/pages/dashboard.dart';
 import '../jobs/pages/jobs_page.dart';
@@ -30,7 +31,7 @@ final merchantRoutes = [
   ),
   GoRoute(
     path: '/merchant/applicants',
-    builder: (context, state) => const HomelessTable(),
+    builder: (context, state) => const ApplicantsPage(),
   ),
   GoRoute(
     path: '/merchant/my-profile',

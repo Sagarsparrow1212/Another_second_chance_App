@@ -24,7 +24,12 @@ class GetJobsUseCase {
     } catch (e, stackTrace) {
       print('❌ [JOBS USECASE] Error in deleteJob: $e');
       print('❌ [JOBS USECASE] Stack trace: $stackTrace');
+      print('❌ [JOBS USECASE] Stack trace: $stackTrace');
       rethrow;
     }
+  }
+
+  Future<void> applyJob(String jobId) async {
+    return await repository.applyJob(jobId);
   }
 }

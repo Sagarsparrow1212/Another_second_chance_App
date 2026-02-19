@@ -223,6 +223,7 @@ class _HomelessTableState extends ConsumerState<HomelessTable> {
         ),
         // ✅ Success state - Display homeless list
         data: (orgId) {
+          debugPrint('DEBUG: Organization ID loaded: $orgId');
           if (orgId == null) {
             return Center(
               child: Column(
@@ -246,7 +247,10 @@ class _HomelessTableState extends ConsumerState<HomelessTable> {
 
           return homelessListAsync.when(
             // ✅ Loading state
-            loading: () => Center(child: AppLoader()),
+            loading: () {
+              debugPrint('DEBUG: Homeless list loading...');
+              return Center(child: AppLoader());
+            },
             // ✅ Error state
             error: (error, stack) => Center(
               child: Column(
@@ -284,9 +288,16 @@ class _HomelessTableState extends ConsumerState<HomelessTable> {
             data: (response) {
               // Sync local list with provider data
               final homelessListFromProvider = response.homeless;
+              debugPrint(
+                'DEBUG: Homeless list from provider length: ${homelessListFromProvider.length}',
+              );
+
               if (localHomelessList.value.isEmpty ||
                   localHomelessList.value.length !=
                       homelessListFromProvider.length) {
+                debugPrint(
+                  'DEBUG: Updating local homeless list. New length: ${homelessListFromProvider.length}',
+                );
                 // Initialize or update local list when provider data changes
                 localHomelessList.value = List<dynamic>.from(
                   homelessListFromProvider,
@@ -365,147 +376,163 @@ class _HomelessTableState extends ConsumerState<HomelessTable> {
                         SliverToBoxAdapter(child: Container(height: 100)),
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: Align(
-                              alignment: Alignment.topRight,
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  context.push('/organization/add-homeless');
-                                },
-                                icon: const Icon(Icons.add, size: 18),
-                                label: const Text(
-                                  'Add Homeless',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SliverToBoxAdapter(child: SizedBox(height: 16)),
-                        // Search bar
-                        SliverToBoxAdapter(
-                          child: Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
-                              vertical: 0,
+                              vertical: 8,
                             ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.grey.shade300,
-                                  width: 1,
-                                ),
-                              ),
-                              child: TextField(
-                                controller: _searchController,
-                                focusNode: _searchFocusNode,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppTheme.lightText,
-                                ),
-                                decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 8,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey.shade300,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey.shade300,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: AppTheme.primary,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  hintText: 'Search for a homeless person',
-                                  prefixIcon: Icon(
-                                    Icons.search,
-                                    color: Colors.grey.shade400,
-                                    size: 20,
-                                  ),
-                                  prefixIconConstraints: const BoxConstraints(
-                                    minWidth: 40,
-                                    minHeight: 20,
-                                  ),
-                                  suffixIcon: _searchController.text.isNotEmpty
-                                      ? IconButton(
-                                          icon: Icon(
-                                            Icons.clear,
+                            child: IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: TextField(
+                                        controller: _searchController,
+                                        focusNode: _searchFocusNode,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppTheme.lightText,
+                                        ),
+                                        decoration: InputDecoration(
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 8,
+                                              ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: Colors.grey.shade300,
+                                              width: 1,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: Colors.grey.shade300,
+                                              width: 0.5,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: AppTheme.primary,
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          hintText:
+                                              'Search for a homeless person',
+                                          prefixIcon: Icon(
+                                            Icons.search,
                                             color: Colors.grey.shade400,
                                             size: 20,
                                           ),
-                                          onPressed: _clearSearch,
-                                        )
-                                      : null,
-                                  isDense: false,
-                                  floatingLabelAlignment:
-                                      FloatingLabelAlignment.start,
-                                  labelStyle: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppTheme.primary,
-                                  ),
-                                  hintStyle: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  floatingLabelStyle: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.primary,
-                                  ),
-                                  errorStyle: const TextStyle(
-                                    height: 0,
-                                    fontSize: 0,
-                                  ),
-                                  floatingLabelBehavior:
-                                      FloatingLabelBehavior.auto,
-                                  errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    borderSide: const BorderSide(
-                                      color: Colors.red,
-                                      width: 1,
+                                          prefixIconConstraints:
+                                              const BoxConstraints(
+                                                minWidth: 40,
+                                                minHeight: 20,
+                                              ),
+                                          suffixIcon:
+                                              _searchController.text.isNotEmpty
+                                              ? IconButton(
+                                                  icon: Icon(
+                                                    Icons.clear,
+                                                    color: Colors.grey.shade400,
+                                                    size: 20,
+                                                  ),
+                                                  onPressed: _clearSearch,
+                                                )
+                                              : null,
+                                          isDense: false,
+                                          floatingLabelAlignment:
+                                              FloatingLabelAlignment.start,
+                                          labelStyle: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: AppTheme.primary,
+                                          ),
+                                          hintStyle: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.grey.shade400,
+                                          ),
+                                          floatingLabelStyle: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppTheme.primary,
+                                          ),
+                                          errorStyle: const TextStyle(
+                                            height: 0,
+                                            fontSize: 0,
+                                          ),
+                                          floatingLabelBehavior:
+                                              FloatingLabelBehavior.auto,
+                                          errorBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12.0,
+                                            ),
+                                            borderSide: const BorderSide(
+                                              color: Colors.red,
+                                              width: 1,
+                                            ),
+                                          ),
+                                          focusedErrorBorder:
+                                              OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12.0),
+                                                borderSide: const BorderSide(
+                                                  color: Colors.red,
+                                                  width: 1,
+                                                ),
+                                              ),
+                                        ),
+                                        onChanged: _onSearchChanged,
+                                      ),
                                     ),
                                   ),
-                                  focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    borderSide: const BorderSide(
-                                      color: Colors.red,
-                                      width: 1,
+                                  const SizedBox(width: 12),
+                                  ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 8,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      context.push(
+                                        '/organization/add-homeless',
+                                      );
+                                    },
+                                    icon: const Icon(Icons.add, size: 18),
+                                    label: const Text(
+                                      'Add',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                onChanged: _onSearchChanged,
+                                ],
                               ),
                             ),
                           ),

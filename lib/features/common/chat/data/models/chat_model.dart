@@ -20,13 +20,29 @@ class ChatModel {
   factory ChatModel.fromJson(Map<String, dynamic> json) {
     ChatUser? organization;
     try {
-      final orgData = json['organization'] ?? json['organizationId'];
-      if (orgData != null) {
-        if (orgData is Map) {
-          organization = ChatUser.fromJson(Map<String, dynamic>.from(orgData));
-        } else if (orgData is String) {
-          organization = ChatUser(id: orgData);
-        } else {}
+      final merchantData = json['merchant'];
+      if (merchantData != null) {
+        if (merchantData is Map) {
+          organization = ChatUser(
+            id: merchantData['_id'] ?? merchantData['id'],
+            orgName: merchantData['businessName'],
+            name: merchantData['businessName'],
+            fullName: merchantData['businessName'],
+          );
+        }
+      }
+
+      if (organization == null) {
+        final orgData = json['organization'] ?? json['organizationId'];
+        if (orgData != null) {
+          if (orgData is Map) {
+            organization = ChatUser.fromJson(
+              Map<String, dynamic>.from(orgData),
+            );
+          } else if (orgData is String) {
+            organization = ChatUser(id: orgData);
+          } else {}
+        }
       }
     } catch (e, stackTrace) {
       // Try to get just the ID
@@ -153,7 +169,6 @@ class ChatUser {
         profilePicture: json['profilePicture']?.toString(),
       );
     } catch (e) {
-  
       rethrow;
     }
   }
@@ -283,7 +298,11 @@ class MessageSender {
   factory MessageSender.fromJson(Map<String, dynamic> json) {
     return MessageSender(
       id: json['_id'] ?? json['id'] ?? '',
-      username: json['username'],
+      username:
+          json['username'] ??
+          json['name'] ??
+          json['fullName'] ??
+          json['orgName'],
       role: json['role'] ?? '',
     );
   }

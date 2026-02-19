@@ -151,9 +151,10 @@ class _SplashCenterContent extends StatelessWidget {
           const SizedBox(height: 12),
 
           Text(
-                'HomelyHope',
+                'Another Second Chance',
                 style: theme.textTheme.headlineMedium!.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: 20,
                 ),
               )
               .animate(delay: 1000.ms)

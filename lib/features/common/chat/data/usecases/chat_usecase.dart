@@ -17,6 +17,13 @@ class ChatUseCase {
     return await repository.getOrCreateChat(organizationId, homelessId);
   }
 
+  Future<ChatModel> getOrCreateMerchantChat(
+    String merchantId,
+    String homelessId,
+  ) async {
+    return await repository.getOrCreateMerchantChat(merchantId, homelessId);
+  }
+
   Future<List<MessageModel>> getMessages(String chatId) async {
     return await repository.getMessages(chatId);
   }

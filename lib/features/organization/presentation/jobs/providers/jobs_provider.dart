@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:homelyhope/features/organization/data/datasources/jobs/jobs_remote_datasource.dart';
 import 'package:homelyhope/features/organization/data/models/jobs/jobs_model.dart';
+import 'package:homelyhope/features/organization/data/models/jobs/job_application_model.dart';
 import 'package:homelyhope/features/organization/data/repositories/jobs/jobs_repository_impl.dart';
 import 'package:homelyhope/features/organization/data/usecases/jobs/get_jobs_usecase.dart';
 
@@ -72,4 +73,23 @@ final deleteJobProvider = FutureProvider.family<Map<String, dynamic>, String>((
     print('❌ [JOBS PROVIDER] Stack trace: $stackTrace');
     rethrow;
   }
+});
+
+final applyForJobUseCaseProvider = Provider<GetJobsUseCase>((ref) {
+  return GetJobsUseCase(ref.watch(jobsRepositoryProvider));
+});
+
+final applyJobProvider = FutureProvider.family<void, String>((
+  ref,
+  jobId,
+) async {
+  final useCase = ref.watch(applyForJobUseCaseProvider);
+  return await useCase.applyJob(jobId);
+});
+
+final jobHistoryProvider = FutureProvider<List<JobApplicationModel>>((
+  ref,
+) async {
+  final repository = ref.watch(jobsRepositoryProvider);
+  return await repository.getJobHistory();
 });

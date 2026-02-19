@@ -20,18 +20,18 @@ class GetAllOrgRemoteDatasource {
       if (token == null) {
         throw Exception('Token is null');
       }
-      await Future.delayed(const Duration(seconds: 5));
-      final uri = '$apiBaseUrl/organizations?page=$page&limit=$limit';
+      final uri = '$apiBaseUrl/organizations';
 
       final response = await dio.get(
         uri,
+        queryParameters: {'page': page, 'limit': limit},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       // Parse first page
       final parsed = OrganizationListResponse.fromJson(response.data);
       print('First page orgs count: ${parsed.organizations}');
-
+      
       // If API returned fewer items than total (pagination metadata), try to fetch remaining pages
       try {
         final data = response.data['data'] ?? response.data;
@@ -64,8 +64,7 @@ class GetAllOrgRemoteDatasource {
             );
 
             for (var p = 2; p <= pages; p++) {
-              try { 
-                await Future.delayed(const Duration(seconds: 5));
+              try {
                 final pageResp = await dio.get(
                   uri,
                   queryParameters: {'page': p, 'limit': perPageInt},
