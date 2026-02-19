@@ -1,4 +1,4 @@
-# homelyhope
+# Another Second Chance App
 
 A new Flutter project.
 
