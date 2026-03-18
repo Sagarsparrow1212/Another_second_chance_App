@@ -6,7 +6,7 @@ class OrganizationRepositoryImpl {
 
   OrganizationRepositoryImpl(this.remoteDatasource);
 
-  Future<OrganizationDetailModel> register(
+  Future<OrganizationRegistrationResponse> register(
     OrganizationDetailModel model,
   ) async {
     return await remoteDatasource.register(model);

@@ -458,7 +458,7 @@ class _AddHomelessState extends ConsumerState<AddHomeless> {
                   label: 'Password',
                   icon: Icons.lock_outline,
                   fieldKey: 'password',
-                  suffixIcon: formState.isChangePassewordSuffix!
+                  suffixIcon: !formState.isChangePassewordSuffix!
                       ? Icons.visibility_off
                       : Icons.visibility,
                   onSuffixIconTap: () {
@@ -478,7 +478,7 @@ class _AddHomelessState extends ConsumerState<AddHomeless> {
                   label: 'Confirm Password',
                   icon: Icons.lock_outline,
                   fieldKey: 'confirmPassword',
-                  suffixIcon: formState.isChangeConfirmPassewordSuffix!
+                  suffixIcon: !formState.isChangeConfirmPassewordSuffix!
                       ? Icons.visibility_off
                       : Icons.visibility,
                   onSuffixIconTap: () {

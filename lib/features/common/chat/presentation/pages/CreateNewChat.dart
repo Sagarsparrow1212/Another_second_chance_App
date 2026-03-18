@@ -10,6 +10,7 @@ import 'package:homelyhope/features/organization/presentation/homeless_people/pr
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../utils/chat_helper.dart';
+import 'package:homelyhope/core/utils/formatters.dart';
 
 class StartChatListPage extends ConsumerStatefulWidget {
   const StartChatListPage({super.key});
@@ -250,7 +251,11 @@ class _StartChatListPageState extends ConsumerState<StartChatListPage> {
                     return _buildUserTile(
                       id: homeless.id,
                       name: homeless.fullName ?? homeless.name ?? 'Unknown',
-                      subtitle: homeless.email ?? homeless.phone ?? '',
+                      subtitle:
+                          homeless.email ??
+                          Formatters.formatPhoneNumber(
+                            homeless.phone ?? homeless.contactPhone ?? '',
+                          ),
                       avatarUrl: _buildImageUrl(homeless.profilePicture),
                       role: 'Homeless',
                       roleColor: Colors.blue,

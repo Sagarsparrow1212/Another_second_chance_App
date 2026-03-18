@@ -9,6 +9,7 @@ import 'package:homelyhope/features/organization/data/models/homeless_people/hom
 import 'package:homelyhope/features/organization/presentation/homeless_people/providers/homeless_providers.dart';
 import 'package:intl/intl.dart';
 import 'add_homeless.dart';
+import 'package:homelyhope/core/utils/formatters.dart';
 
 class ViewHomelessDetailPage extends ConsumerWidget {
   final String homelessId;
@@ -539,7 +540,9 @@ class ViewHomelessDetailPage extends ConsumerWidget {
               _buildInfoRow(
                 Icons.phone,
                 'Phone',
-                homeless.phone ?? homeless.contactPhone ?? '',
+                Formatters.formatPhoneNumber(
+                  homeless.phone ?? homeless.contactPhone ?? '',
+                ),
               ),
             if ((homeless.phone != null && homeless.phone!.isNotEmpty) ||
                 (homeless.contactPhone != null &&

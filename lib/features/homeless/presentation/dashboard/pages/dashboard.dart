@@ -191,46 +191,45 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
 
           const SizedBox(height: 16),
           // Quick Stats Grid
-          GridView.count(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 0.95,
-            children: [
-              // _buildStatCard(
-              //   title: quickStats.totalJobs.title,
-              //   value: quickStats.totalJobs.value.toString(),
-              //   icon: _getIconForName(quickStats.totalJobs.icon),
-              //   color: AppTheme.primary,
-              //   subtitle: quickStats.totalJobs.description,
-              // ),
-              if (quickStats.matchingJobs != null)
-                _buildStatCard(
-                  title: quickStats.matchingJobs!.title,
-                  value: quickStats.matchingJobs!.value.toString(),
-                  icon: FontAwesomeIcons.magnifyingGlass,
-                  color: Colors.blue,
-                  subtitle: quickStats.matchingJobs!.description,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              int crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+              return GridView(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  mainAxisExtent: 160,
                 ),
-
-              _buildStatCard(
-                title: quickStats.activeJobs.title,
-                value: quickStats.activeJobs.value.toString(),
-                icon: _getIconForName(quickStats.activeJobs.icon),
-                color: Colors.teal,
-                subtitle: quickStats.activeJobs.description,
-              ),
-              _buildStatCard(
-                title: quickStats.appliedJobs.title,
-                value: quickStats.appliedJobs.value.toString(),
-                icon: _getIconForName(quickStats.appliedJobs.icon),
-                color: Colors.green,
-                subtitle: quickStats.appliedJobs.description,
-              ),
-            ],
+                children: [
+                  if (quickStats.matchingJobs != null)
+                    _buildStatCard(
+                      title: quickStats.matchingJobs!.title,
+                      value: quickStats.matchingJobs!.value.toString(),
+                      icon: FontAwesomeIcons.magnifyingGlass,
+                      color: Colors.blue,
+                      subtitle: quickStats.matchingJobs!.description,
+                    ),
+                  _buildStatCard(
+                    title: quickStats.activeJobs.title,
+                    value: quickStats.activeJobs.value.toString(),
+                    icon: _getIconForName(quickStats.activeJobs.icon),
+                    color: Colors.teal,
+                    subtitle: quickStats.activeJobs.description,
+                  ),
+                  _buildStatCard(
+                    title: quickStats.appliedJobs.title,
+                    value: quickStats.appliedJobs.value.toString(),
+                    icon: _getIconForName(quickStats.appliedJobs.icon),
+                    color: Colors.green,
+                    subtitle: quickStats.appliedJobs.description,
+                  ),
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 16),

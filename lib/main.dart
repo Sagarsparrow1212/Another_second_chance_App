@@ -19,7 +19,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
+  
   // Set the background messaging handler early on, as a named top-level function
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
@@ -63,7 +63,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   Widget build(BuildContext context) {
     final snackbarService = ref.watch(snackbarServiceProvider);
-
+    
     return MaterialApp.router(
       scaffoldMessengerKey: snackbarService.messengerKey,
       debugShowCheckedModeBanner: false,

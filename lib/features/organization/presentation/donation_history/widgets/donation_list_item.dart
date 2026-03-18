@@ -126,6 +126,17 @@ class DonationListItem extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.credit_card, size: 14, color: Colors.grey.shade500),
+              const SizedBox(width: 4),
+              Text(
+                'Homeless: ${donation.homeless!.fullName ?? "Card"}',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
           // Payment Info
           Row(
             children: [

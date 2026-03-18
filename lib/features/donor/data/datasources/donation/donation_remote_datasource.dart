@@ -96,7 +96,7 @@ class DonationRemoteDatasource {
       log('url: $url');
       await Future.delayed(const Duration(seconds: 2));
       final response = await dio.get(url, options: Options(headers: headers));
-
+      log('response: ${response.data}');
       // Handle raw list response
       if (response.data is List) {
         return (response.data as List)

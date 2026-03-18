@@ -437,6 +437,7 @@ class _JobsPageState extends ConsumerState<JobsPage> {
                       children: [
                         // Title column - sortable
                         Expanded(
+                          flex: screenWidth > 600 ? 2 : 1,
                           child: GestureDetector(
                             onTap: () => _handleSort(SortBy.title),
                             child: Row(
@@ -465,34 +466,92 @@ class _JobsPageState extends ConsumerState<JobsPage> {
                             ),
                           ),
                         ),
-                        // Salary column - sortable
-                        GestureDetector(
-                          onTap: () => _handleSort(SortBy.salary),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Salary',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                  color: _sortBy == SortBy.salary
-                                      ? AppTheme.primary
-                                      : Colors.black87,
-                                ),
+                        // Tablet Category & Location
+                        if (screenWidth > 600)
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              'Category & Location',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.black87,
                               ),
-                              const SizedBox(width: 4),
-                              if (_sortBy == SortBy.salary)
-                                Icon(
-                                  _sortOrder == SortOrder.ascending
-                                      ? Icons.arrow_upward
-                                      : Icons.arrow_downward,
-                                  size: 16,
-                                  color: AppTheme.primary,
-                                ),
-                            ],
+                            ),
                           ),
-                        ),
+                        // Salary column - sortable
+                        if (screenWidth > 600)
+                          Expanded(
+                            flex: 1,
+                            child: GestureDetector(
+                              onTap: () => _handleSort(SortBy.salary),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Salary',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                      color: _sortBy == SortBy.salary
+                                          ? AppTheme.primary
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  if (_sortBy == SortBy.salary)
+                                    Icon(
+                                      _sortOrder == SortOrder.ascending
+                                          ? Icons.arrow_upward
+                                          : Icons.arrow_downward,
+                                      size: 16,
+                                      color: AppTheme.primary,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else
+                          GestureDetector(
+                            onTap: () => _handleSort(SortBy.salary),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Salary',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: _sortBy == SortBy.salary
+                                        ? AppTheme.primary
+                                        : Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                if (_sortBy == SortBy.salary)
+                                  Icon(
+                                    _sortOrder == SortOrder.ascending
+                                        ? Icons.arrow_upward
+                                        : Icons.arrow_downward,
+                                    size: 16,
+                                    color: AppTheme.primary,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        if (screenWidth > 600)
+                          Container(
+                            width: 140,
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Actions',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -546,6 +605,10 @@ class _JobsPageState extends ConsumerState<JobsPage> {
   }
 
   Widget _buildJobCard(BuildContext context, JobModel job) {
+    if (MediaQuery.of(context).size.width > 600) {
+      return _buildTabletJobCard(context, job);
+    }
+
     return ValueListenableBuilder<Set<String>>(
       valueListenable: expandedJobIds,
       builder: (context, expandedSet, child) {
@@ -783,6 +846,180 @@ class _JobsPageState extends ConsumerState<JobsPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTabletJobCard(BuildContext context, JobModel job) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Title & Company
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  job.title,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+                if (job.merchant != null) const SizedBox(height: 6),
+                if (job.merchant != null)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.store_outlined,
+                        size: 14,
+                        color: Colors.green.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          job.merchant!.businessName,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[800],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+
+          // 2. Category & Location
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (job.category.isNotEmpty)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.category_outlined,
+                        size: 14,
+                        color: Colors.purple.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        job.category,
+                        style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                      ),
+                    ],
+                  ),
+                if (job.category.isNotEmpty && job.location?.address != null)
+                  const SizedBox(height: 6),
+                if (job.location?.address != null)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: Colors.red.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          job.location!.address,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[800],
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+
+          // 3. Salary
+          Expanded(
+            flex: 1,
+            child: job.salaryRange != null
+                ? Text(
+                    '\$${job.salaryRange!.min.toStringAsFixed(0)} - \$${job.salaryRange!.max.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primary,
+                    ),
+                  )
+                : const Text('--'),
+          ),
+
+          // 4. Actions
+          Container(
+            width: 140,
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.visibility_outlined,
+                      color: Colors.blue.shade700,
+                      size: 18,
+                    ),
+                    onPressed: () {
+                      _showJobDetailsDialog(context, job);
+                    },
+                    tooltip: 'View Details',
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.send_outlined,
+                      color: Colors.green.shade700,
+                      size: 16,
+                    ),
+                    onPressed: () {
+                      _confirmAndApply(context, ref, job);
+                    },
+                    tooltip: 'Apply',
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

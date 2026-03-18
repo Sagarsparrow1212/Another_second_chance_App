@@ -12,6 +12,7 @@ import '../../../common/widgets/custom_appbar.dart';
 import '../../data/models/organization/organization_model.dart';
 import 'providers/organization_provider.dart';
 import 'organization_homeless_page.dart';
+import 'package:homelyhope/core/utils/formatters.dart';
 
 class OrganizationTable extends ConsumerStatefulWidget {
   const OrganizationTable({super.key});
@@ -1018,7 +1019,9 @@ class _OrganizationTableState extends ConsumerState<OrganizationTable> {
                                 icon: Icons.phone_outlined,
                                 iconColor: Colors.green,
                                 label: 'Phone',
-                                value: org.contactPhone,
+                                value: Formatters.formatPhoneNumber(
+                                  org.contactPhone,
+                                ),
                               ),
                               _buildDetailRow(
                                 icon: Icons.location_on_outlined,

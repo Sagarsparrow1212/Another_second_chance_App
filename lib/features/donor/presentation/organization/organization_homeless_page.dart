@@ -11,6 +11,7 @@ import 'package:homelyhope/features/common/widgets/custom_appbar.dart';
 import 'package:homelyhope/features/common/widgets/divider.dart';
 import 'package:homelyhope/features/donor/data/datasources/homeless_people/homeless_remote_datasource.dart';
 import 'package:homelyhope/features/donor/presentation/organization/providers/organization_provider.dart';
+import 'package:homelyhope/core/utils/formatters.dart';
 
 class OrganizationHomelessArgs {
   final String organizationId;
@@ -591,7 +592,9 @@ class _OrganizationHomelessPageState
                               icon: Icons.phone_outlined,
                               iconColor: Colors.green,
                               label: 'Phone',
-                              value: homeless.contactPhone!,
+                              value: Formatters.formatPhoneNumber(
+                                homeless.contactPhone!,
+                              ),
                             ),
                           if (homeless.contactEmail != null &&
                               homeless.contactEmail!.isNotEmpty)

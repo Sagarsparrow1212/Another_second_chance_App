@@ -38,8 +38,8 @@ class ApplicantsPage extends ConsumerWidget {
                           crossAxisCount: 2,
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
-                          childAspectRatio:
-                              3, // Changed from 2.5 to reduce height
+                          mainAxisExtent:
+                              200, // Fixed height to prevent bottom overflow
                         ),
                     itemCount: applications.length,
                     itemBuilder: (context, index) {
@@ -55,6 +55,18 @@ class ApplicantsPage extends ConsumerWidget {
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Failed to approve: $e')),
+                            );
+                          }
+                        },
+                        onReject: () async {
+                          try {
+                            await ref
+                                .read(applicantsRepositoryProvider)
+                                .rejectApplication(applications[index].id);
+                            final _ = ref.refresh(merchantApplicationsProvider);
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Failed to reject: $e')),
                             );
                           }
                         },
@@ -80,6 +92,18 @@ class ApplicantsPage extends ConsumerWidget {
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Failed to approve: $e')),
+                          );
+                        }
+                      },
+                      onReject: () async {
+                        try {
+                          await ref
+                              .read(applicantsRepositoryProvider)
+                              .rejectApplication(applications[index].id);
+                          final _ = ref.refresh(merchantApplicationsProvider);
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to reject: $e')),
                           );
                         }
                       },
@@ -126,11 +150,13 @@ class _ApplicantCard extends StatelessWidget {
   final dynamic application;
   final WidgetRef ref;
   final VoidCallback onApprove;
+  final VoidCallback onReject;
 
   const _ApplicantCard({
     required this.application,
     required this.ref,
     required this.onApprove,
+    required this.onReject,
   });
 
   String? getAvatarUrl(String? avatarUrl) {
@@ -152,28 +178,29 @@ class _ApplicantCard extends StatelessWidget {
     Color color;
     switch (status.toLowerCase()) {
       case 'approved':
-        color = Colors.green;
+        color = const Color(0xFF2E7D32);
         break;
       case 'rejected':
-        color = Colors.red;
+        color = const Color(0xFFC62828);
         break;
       default:
-        color = Colors.orange;
+        color = const Color(0xFFEF6C00);
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withOpacity(0.15), width: 0.5),
       ),
       child: Text(
         status.toUpperCase(),
         style: TextStyle(
           color: color,
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: FontWeight.bold,
-          letterSpacing: 0.5,
+          letterSpacing: 0.3,
         ),
       ),
     );
@@ -182,36 +209,46 @@ class _ApplicantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(color: Colors.grey.shade100, width: 0.8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: Colors.grey.shade100,
-                backgroundImage: application.applicant.photoUrl != null
-                    ? NetworkImage(
-                        getAvatarUrl(application.applicant.photoUrl!)!,
-                      )
-                    : null,
-                child: application.applicant.photoUrl == null
-                    ? Icon(Icons.person, color: Colors.grey.shade400, size: 28)
-                    : null,
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade100, width: 1.5),
+                ),
+                child: CircleAvatar(
+                  radius: 22,
+                  backgroundColor: Colors.grey.shade50,
+                  backgroundImage: application.applicant.photoUrl != null
+                      ? NetworkImage(
+                          getAvatarUrl(application.applicant.photoUrl!)!,
+                        )
+                      : null,
+                  child: application.applicant.photoUrl == null
+                      ? Icon(
+                          Icons.person,
+                          color: Colors.grey.shade300,
+                          size: 24,
+                        )
+                      : null,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -225,130 +262,208 @@ class _ApplicantCard extends StatelessWidget {
                           child: Text(
                             application.applicant.fullName,
                             style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
                               color: Color(0xFF1A1A1A),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 8),
                         _buildStatusChip(application.status),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Applied for: ${application.job.title}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 11,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          formatDateTime(application.appliedAt),
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Icon(
-                Icons.calendar_today_outlined,
-                size: 14,
-                color: Colors.grey.shade500,
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  'Applied on ${formatDateTime(application.appliedAt)}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F7FF),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.work_outline, size: 14, color: Colors.blue.shade600),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    application.job.title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue.shade900,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () async {
-                    try {
-                      ChatHelper.startChatWithUser(
-                        ref: ref,
-                        context: context,
-                        targetUserId: application.applicant.id,
-                        targetUserName: application.applicant.fullName,
-                      );
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to start chat: $e')),
-                        );
-                      }
-                    }
-                  },
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    side: BorderSide(color: Colors.grey.shade300),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    foregroundColor: Colors.grey.shade700,
+              // Chat Button
+              InkWell(
+                onTap: () {
+                  ChatHelper.startChatWithUser(
+                    ref: ref,
+                    context: context,
+                    targetUserId: application.applicant.id,
+                    targetUserName: application.applicant.fullName,
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.chat_bubble_outline, size: 18),
-                      SizedBox(width: 8),
-                      Text('Chat'),
-                    ],
+                  child: Icon(
+                    Icons.chat_bubble_outline,
+                    size: 18,
+                    color: Colors.grey.shade600,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
+              // Approve/Rejected Buttons
               Expanded(
-                child: ElevatedButton(
-                  onPressed: application.status == 'approved'
-                      ? null
-                      : onApprove,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E3F7C), // Dark blue
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (application.status != 'approved') ...[
-                        const Icon(
-                          Icons.check_circle_outline,
-                          size: 18,
-                          color: Colors.white,
+                child: Row(
+                  children: [
+                    if (application.status == 'pending') ...[
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: onApprove,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1E3F7C),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Approve',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: 8),
-                      ],
-                      Text(
-                        application.status == 'approved'
-                            ? 'Approved'
-                            : 'Approve',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: onReject,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.red.shade700,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            side: BorderSide(
+                              color: Colors.red.shade100,
+                              width: 0.8,
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Reject',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ] else if (application.status == 'approved') ...[
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.green.shade100),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.check_circle,
+                                size: 14,
+                                color: Colors.green.shade700,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Approved',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.green.shade700,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ] else if (application.status == 'rejected') ...[
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.shade100),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.cancel,
+                                size: 14,
+                                color: Colors.red.shade700,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Rejected',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.red.shade700,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ],
@@ -358,3 +473,5 @@ class _ApplicantCard extends StatelessWidget {
     );
   }
 }
+
+//}

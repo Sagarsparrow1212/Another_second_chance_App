@@ -55,7 +55,9 @@ class DonationModel {
 
     String? _extractName(dynamic value) {
       if (value is Map) {
-        return value['fullName']?.toString() ?? value['name']?.toString();
+        return value['fullName']?.toString() ??
+            value['name']?.toString() ??
+            value['donorFullName']?.toString();
       }
       return null;
     }

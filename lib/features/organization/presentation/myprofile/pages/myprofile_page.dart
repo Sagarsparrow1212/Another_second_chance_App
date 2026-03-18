@@ -9,6 +9,7 @@ import 'package:homelyhope/core/theme/app_theme.dart';
 import 'package:homelyhope/features/organization/presentation/myprofile/providers/profile_provider.dart';
 import '../../../../common/Drawer/pages/dynamic_drawer.dart';
 import '../../../../common/widgets/custom_appbar.dart';
+import 'package:homelyhope/core/utils/formatters.dart';
 
 class MyProfilePage extends ConsumerStatefulWidget {
   const MyProfilePage({super.key});
@@ -337,7 +338,11 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
             _buildContactItem(Icons.email, 'Email', data.email),
             const SizedBox(height: 16),
             if (data.contactPhone != null && data.contactPhone!.isNotEmpty)
-              _buildContactItem(Icons.phone, 'Phone', data.contactPhone!),
+              _buildContactItem(
+                Icons.phone,
+                'Phone',
+                Formatters.formatPhoneNumber(data.contactPhone!),
+              ),
             if (data.contactPhone != null && data.contactPhone!.isNotEmpty)
               const SizedBox(height: 16),
             _buildContactItem(

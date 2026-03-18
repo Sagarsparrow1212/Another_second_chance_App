@@ -113,7 +113,6 @@ class ChatRemoteDatasource {
   Future<List<ChatModel>> getAllChats() async {
     try {
       final headers = await getHeaders();
-      await Future.delayed(const Duration(seconds: 2));
       final response = await dio.get(
         '$apiBaseUrl/chat',
         options: Options(headers: headers),
@@ -137,7 +136,6 @@ class ChatRemoteDatasource {
   ) async {
     try {
       final headers = await getHeaders();
-      await Future.delayed(const Duration(seconds: 2));
       final response = await dio.get(
         '$apiBaseUrl/chat/$organizationId/$homelessId',
         options: Options(headers: headers),
@@ -145,7 +143,7 @@ class ChatRemoteDatasource {
 
       if (response.data['success'] == true) {
         final data = response.data['data'];
-
+        
         // Handle different response formats
         if (data is Map<String, dynamic>) {
           // Normal case: data is a Map
@@ -192,7 +190,6 @@ class ChatRemoteDatasource {
   ) async {
     try {
       final headers = await getHeaders();
-      await Future.delayed(const Duration(seconds: 2));
       // Assuming endpoint for merchant chat creation
       final response = await dio.get(
         '$apiBaseUrl/chat/$merchantId/$homelessId',
@@ -270,8 +267,6 @@ class ChatRemoteDatasource {
       if (afterTimestamp != null) {
         queryParams['afterTimestamp'] = afterTimestamp.toIso8601String();
       }
-
-      await Future.delayed(const Duration(seconds: 2));
 
       // Handle mock chats locally
       if (chatId.startsWith('mock_chat_')) {

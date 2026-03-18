@@ -4,6 +4,8 @@ import 'package:homelyhope/core/contanst/contanst.dart';
 import 'package:homelyhope/features/common/widgets/custom_appbar.dart';
 import '../manager/notification_provider.dart';
 import '../widgets/notification_tile.dart';
+import 'package:homelyhope/features/common/auth/data/services/auth_storage_service.dart';
+import 'package:go_router/go_router.dart';
 
 class NotificationPage extends ConsumerWidget {
   const NotificationPage({super.key});
@@ -81,6 +83,48 @@ class NotificationPage extends ConsumerWidget {
                             ),
                           );
                         }
+                      }
+                    }
+
+                    if (!context.mounted) return;
+
+                    // Handle navigation
+                    final type = notification.type.toLowerCase();
+                    if (type == 'donation') {
+                      final role = await AuthStorageService.getUserRole();
+                      if (!context.mounted) return;
+
+                      if (role == 'homeless') {
+                        context.go('/homeless/my-donations');
+                      } else if (role == 'organization') {
+                        context.go('/organization/donation-history');
+                      } else if (role == 'donor') {
+                        context.go('/donor/my-donations');
+                      }
+                    } else if (type.contains('job') ||
+                        notification.title.toLowerCase().contains('job')) {
+                      final role = await AuthStorageService.getUserRole();
+                      if (!context.mounted) return;
+
+                      if (role == 'homeless') {
+                        context.go('/homeless/jobs');
+                      } else if (role == 'organization') {
+                        context.go('/organization/jobs');
+                      } else if (role == 'merchant') {
+                        context.go('/merchant/jobs');
+                      }
+                    } else if (type == 'chat' || type == 'message') {
+                      final role = await AuthStorageService.getUserRole();
+                      if (!context.mounted) return;
+
+                      if (role == 'organization') {
+                        context.go('/organization/chat');
+                      } else if (role == 'homeless') {
+                        context.go('/homeless/chat');
+                      } else if (role == 'merchant') {
+                        context.go('/merchant/chat');
+                      } else {
+                        context.go('/chat');
                       }
                     }
                   },

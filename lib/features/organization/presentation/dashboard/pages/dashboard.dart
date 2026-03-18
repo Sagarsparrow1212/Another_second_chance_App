@@ -11,6 +11,8 @@ import 'package:homelyhope/features/common/Drawer/pages/dynamic_drawer.dart';
 import 'package:homelyhope/features/common/widgets/custom_appbar.dart';
 import 'package:homelyhope/features/organization/data/models/dashboard/dashboard_model.dart';
 import 'package:homelyhope/features/organization/presentation/dashboard/providers/dashboard_provider.dart';
+import 'package:homelyhope/features/organization/presentation/dashboard/providers/payment_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
@@ -23,7 +25,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
     with AutomaticKeepAliveClientMixin {
   DateTime? lastPressed;
   bool _hasInitialized = false;
-
+  bool _isLoadingOnboardingLink = false;
+  
   @override
   bool get wantKeepAlive => true; // Keep dashboard state alive when navigating
 
@@ -169,9 +172,29 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Consumer(
+            builder: (context, ref, child) {
+              final stripeStatusAsync = ref.watch(stripeAccountStatusProvider);
+              return stripeStatusAsync.when(
+                data: (stripeAccount) {
+                  print("Stripe Account ${stripeAccount!.detailsSubmitted}");
+                  // If stripe account is null OR details are not submitted
+                  if (stripeAccount == null ||
+                      !stripeAccount.detailsSubmitted) {
+                    return _buildStripeWarningBanner();
+                  }
+                  return const SizedBox.shrink();
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              );
+            },
+          ),
           // Welcome message
           Text(
-            '${createGreetingBasedOnTime()}! 👋,\n${_userName ?? 'User'}',
+            MediaQuery.of(context).size.width > 600
+                ? '${createGreetingBasedOnTime()}! 👋, ${_userName ?? 'User'}'
+                : '${createGreetingBasedOnTime()}! 👋,\n${_userName ?? 'User'}',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -196,7 +219,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: 0.95,
+              childAspectRatio: MediaQuery.of(context).size.width > 600
+                  ? MediaQuery.of(context).size.width / 350
+                  : 0.95,
               children: [
                 _buildStatCard(
                   title: 'Homeless Supported',
@@ -221,7 +246,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
 
           _buildDonationsCard(summary.donationsReceived),
           // Donations Section
-          const SizedBox(height: 16), _buildTotalDonationsChart(),
+          const SizedBox(height: 16),
+          _buildTotalDonationsChart(dashboard.monthlyDonations),
           const SizedBox(height: 16),
 
           // Quick Actions Section
@@ -239,69 +265,131 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
           const SizedBox(height: 24),
 
           // KPI Cards from API (if available)
-          if (dashboard.kpiCards.isNotEmpty) ...[
-            Text(
-              'Key Performance Indicators',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 16),
-            ...dashboard.kpiCards.asMap().entries.map((entry) {
-              final index = entry.key;
-              final kpi = entry.value;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildKpiCard(
-                  title: kpi.title,
-                  value: kpi.value.toString(),
-                  description: kpi.description,
-                  icon: _getIconForName(kpi.icon),
-                  color: _getColorForIndex(index),
-                ),
-              );
-            }),
-          ],
+          // Mpo
         ],
       ),
     );
   }
 
-  Widget _buildTotalDonationsChart() {
-    // Sample monthly donation data - replace with real API data when available
-    // Format: [Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec]
-    final monthlyDonations = [
-      1200.0,
-      1800.0,
-      1500.0,
-      1000.0,
-      1900.0,
-      2500.0,
-      2800.0,
-      2100.0,
-      2400.0,
-      3000.0,
-      2700.0,
-      3200.0,
-    ];
+  Future<void> _launchOnboardingLink() async {
+    if (_isLoadingOnboardingLink) return;
+    setState(() => _isLoadingOnboardingLink = true);
+    try {
+      final getLink = ref.read(getOnboardingLinkProvider);
+      final urlString = await getLink();
+      final uri = Uri.parse(urlString);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ref
+              .read(snackbarServiceProvider)
+              .showError('Could not open the link. Please try again.');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ref
+            .read(snackbarServiceProvider)
+            .showError('Failed to generate onboarding link. Please try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _isLoadingOnboardingLink = false);
+    }
+  }
 
-    final monthLabels = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final maxValue = monthlyDonations.reduce((a, b) => a > b ? a : b);
+  Widget _buildStripeWarningBanner() {
+    return GestureDetector(
+      onTap: _launchOnboardingLink,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.orange.shade300),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange.shade800),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Profile Incomplete',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange.shade900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Your Stripe verification is incomplete. Tap here to complete your setup and start receiving donations.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.orange.shade900,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (_isLoadingOnboardingLink)
+                        SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.orange.shade800,
+                          ),
+                        )
+                      else
+                        Icon(
+                          Icons.open_in_new,
+                          size: 14,
+                          color: Colors.orange.shade800,
+                        ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _isLoadingOnboardingLink
+                            ? 'Opening Stripe...'
+                            : 'Complete Stripe Setup',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.orange.shade800,
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.orange.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.orange.shade700),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTotalDonationsChart(List<MonthlyDonation> apiDonations) {
+    final monthlyDonations = apiDonations
+        .map((e) => e.amount.toDouble())
+        .toList();
+    final monthLabels = apiDonations.map((e) => e.monthName).toList();
+
+    double maxValue = 0;
+    if (monthlyDonations.isNotEmpty) {
+      maxValue = monthlyDonations.reduce((a, b) => a > b ? a : b);
+    }
+    if (maxValue == 0) {
+      maxValue = 1000.0; // Default max value if all donations are 0
+    }
 
     return StatefulBuilder(
       builder: (context, setState) {
@@ -368,8 +456,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
                         getTooltipItem: (group, groupIndex, rod, rodIndex) {
                           final month = monthLabels[group.x.toInt()];
                           final amount = rod.toY;
+                          print(amount);
                           return BarTooltipItem(
-                            '$month\n\$${amount.toStringAsFixed(0)}',
+                            '$month\n\$${amount}',
                             TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -431,8 +520,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
                           reservedSize: 30,
                           getTitlesWidget: (value, meta) {
                             if (value == 0) return const Text('');
+                            
+                            String formattedValue;
+                            if (value >= 1000) {
+                              formattedValue = '\$${(value / 1000).toStringAsFixed(1)}k';
+                            } else {
+                              formattedValue = '\$${value.toInt()}';
+                            }
+                            
                             return Text(
-                              '\$${(value / 1000).toStringAsFixed(1)}k',
+                              formattedValue,
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 10,

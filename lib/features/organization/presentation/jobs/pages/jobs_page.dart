@@ -264,6 +264,8 @@ class _JobsPageState extends ConsumerState<JobsPage> {
           return ValueListenableBuilder<List<JobModel>>(
             valueListenable: localJobsList,
             builder: (context, localJobs, _) {
+              final screenWidth = MediaQuery.of(context).size.width;
+
               // Re-filter and sort with current local list
               final filteredAndSortedJobs = _filterAndSortJobs(localJobs);
 
@@ -506,8 +508,9 @@ class _JobsPageState extends ConsumerState<JobsPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Title column - sortable with teal bar
+                            // Title column - sortable
                             Expanded(
+                              flex: screenWidth > 600 ? 2 : 1,
                               child: GestureDetector(
                                 onTap: () => _handleSort(SortBy.title),
                                 child: Row(
@@ -536,39 +539,97 @@ class _JobsPageState extends ConsumerState<JobsPage> {
                                 ),
                               ),
                             ),
-                            // Salary column - sortable
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                              ),
-                              child: GestureDetector(
-                                onTap: () => _handleSort(SortBy.salary),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Salary',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                        color: _sortBy == SortBy.salary
-                                            ? AppTheme.primary
-                                            : Colors.black,
-                                      ),
-                                    ),
-                                    SizedBox(width: 4),
-                                    if (_sortBy == SortBy.salary)
-                                      Icon(
-                                        _sortOrder == SortOrder.ascending
-                                            ? Icons.arrow_upward
-                                            : Icons.arrow_downward,
-                                        size: 16,
-                                        color: AppTheme.primary,
-                                      ),
-                                  ],
+                            // Tablet Header Columns
+                            if (screenWidth > 600)
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Details',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
                                 ),
                               ),
-                            ),
+                            if (screenWidth > 600)
+                              Expanded(
+                                flex: 2,
+                                child: GestureDetector(
+                                  onTap: () => _handleSort(SortBy.date),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Posted Date & Status',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                          color: _sortBy == SortBy.date
+                                              ? AppTheme.primary
+                                              : Colors.black87,
+                                        ),
+                                      ),
+                                      SizedBox(width: 4),
+                                      if (_sortBy == SortBy.date)
+                                        Icon(
+                                          _sortOrder == SortOrder.ascending
+                                              ? Icons.arrow_upward
+                                              : Icons.arrow_downward,
+                                          size: 16,
+                                          color: AppTheme.primary,
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            if (screenWidth > 600)
+                              Container(
+                                width: 65,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Actions',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            // Salary column - sortable (Mobile only)
+                            if (screenWidth <= 600)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                child: GestureDetector(
+                                  onTap: () => _handleSort(SortBy.salary),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Salary',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                          color: _sortBy == SortBy.salary
+                                              ? AppTheme.primary
+                                              : Colors.black,
+                                        ),
+                                      ),
+                                      SizedBox(width: 4),
+                                      if (_sortBy == SortBy.salary)
+                                        Icon(
+                                          _sortOrder == SortOrder.ascending
+                                              ? Icons.arrow_upward
+                                              : Icons.arrow_downward,
+                                          size: 16,
+                                          color: AppTheme.primary,
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -640,6 +701,9 @@ class _JobsPageState extends ConsumerState<JobsPage> {
   }
 
   Widget _buildJobCard(BuildContext context, JobModel job, int index) {
+    if (MediaQuery.of(context).size.width > 600) {
+      return _buildTabletJobCard(context, job, index);
+    }
     return ValueListenableBuilder<Set<String>>(
       valueListenable: expandedJobIds,
       builder: (context, expandedSet, child) {
@@ -927,6 +991,179 @@ class _JobsPageState extends ConsumerState<JobsPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTabletJobCard(BuildContext context, JobModel job, int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade400.withValues(alpha: 0.75)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Title & Salary
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildHighlightedText(
+                  text: job.title,
+                  searchQuery: _searchQuery,
+                ),
+                if (job.salaryRange != null) const SizedBox(height: 4),
+                if (job.salaryRange != null)
+                  Text(
+                    '\$${job.salaryRange!.min.toStringAsFixed(0)} - \$${job.salaryRange!.max.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // 2. Details (Category & Business)
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (job.category.isNotEmpty)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.business,
+                        size: 14,
+                        color: Colors.green.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          job.category,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[800],
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                if (job.category.isNotEmpty && job.merchant != null)
+                  const SizedBox(height: 6),
+                if (job.merchant != null)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.storefront,
+                        size: 14,
+                        color: Colors.blue.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          job.merchant!.businessName,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[800],
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          // 3. Posted Date & Status
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (job.createdAt.isNotEmpty)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: Colors.blue.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _formatDate(job.createdAt),
+                        style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                      ),
+                    ],
+                  ),
+                if (job.createdAt.isNotEmpty) const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time,
+                      size: 14,
+                      color: Colors.orange.shade700,
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        job.status.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // 4. Actions
+          SizedBox(
+            width: 50,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: IconButton(
+                icon: Icon(
+                  Icons.visibility_outlined,
+                  color: Colors.green.shade700,
+                  size: 20,
+                ),
+                onPressed: () {
+                  context.push('/organization/view-job/${job.id}');
+                },
+                tooltip: 'View',
+                padding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

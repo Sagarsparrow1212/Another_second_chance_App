@@ -11,6 +11,7 @@ import 'package:homelyhope/features/common/widgets/custom_appbar.dart';
 import 'package:homelyhope/features/common/widgets/divider.dart';
 import 'package:homelyhope/features/donor/data/datasources/homeless_people/homeless_remote_datasource.dart';
 import '../../organization/providers/organization_provider.dart';
+import 'package:homelyhope/core/utils/formatters.dart';
 
 class DonorHomelessTable extends ConsumerStatefulWidget {
   const DonorHomelessTable({super.key});
@@ -459,6 +460,7 @@ class _DonorHomelessTableState extends ConsumerState<DonorHomelessTable> {
                       children: [
                         // Name column - sortable
                         Expanded(
+                          flex: screenWidth > 600 ? 2 : 1,
                           child: GestureDetector(
                             onTap: () => _handleSort(SortBy.name),
                             child: Row(
@@ -487,37 +489,76 @@ class _DonorHomelessTableState extends ConsumerState<DonorHomelessTable> {
                             ),
                           ),
                         ),
-                        // Age column - sortable
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: GestureDetector(
-                            onTap: () => _handleSort(SortBy.age),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Age',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                    color: _sortBy == SortBy.age
-                                        ? AppTheme.primary
-                                        : Colors.black,
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                if (_sortBy == SortBy.age)
-                                  Icon(
-                                    _sortOrder == SortOrder.ascending
-                                        ? Icons.arrow_upward
-                                        : Icons.arrow_downward,
-                                    size: 16,
-                                    color: AppTheme.primary,
-                                  ),
-                              ],
+                        // Tablet Header Columns
+                        if (screenWidth > 600)
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              'Details',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
                             ),
                           ),
-                        ),
+                        if (screenWidth > 600)
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              'Location & Skills',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        if (screenWidth > 600)
+                          Container(
+                            width: 140,
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Actions',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        // Age column - sortable (Mobile only)
+                        if (screenWidth <= 600)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
+                            child: GestureDetector(
+                              onTap: () => _handleSort(SortBy.age),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Age',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                      color: _sortBy == SortBy.age
+                                          ? AppTheme.primary
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4),
+                                  if (_sortBy == SortBy.age)
+                                    Icon(
+                                      _sortOrder == SortOrder.ascending
+                                          ? Icons.arrow_upward
+                                          : Icons.arrow_downward,
+                                      size: 16,
+                                      color: AppTheme.primary,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -574,6 +615,10 @@ class _DonorHomelessTableState extends ConsumerState<DonorHomelessTable> {
     HomelessPerson homeless,
     int index,
   ) {
+    if (MediaQuery.of(context).size.width > 600) {
+      return _buildTabletHomelessCard(context, homeless, index);
+    }
+
     final fullName = homeless.fullName;
     final age = homeless.age;
     final imageUrl = _buildImageUrl(homeless.profilePicture);
@@ -708,7 +753,9 @@ class _DonorHomelessTableState extends ConsumerState<DonorHomelessTable> {
                               icon: Icons.phone_outlined,
                               iconColor: Colors.green,
                               label: 'Phone',
-                              value: homeless.contactPhone!,
+                              value: Formatters.formatPhoneNumber(
+                                homeless.contactPhone!,
+                              ),
                             ),
 
                           // Email
@@ -830,6 +877,227 @@ class _DonorHomelessTableState extends ConsumerState<DonorHomelessTable> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTabletHomelessCard(
+    BuildContext context,
+    HomelessPerson homeless,
+    int index,
+  ) {
+    final fullName = homeless.fullName;
+    final age = homeless.age;
+    final imageUrl = _buildImageUrl(homeless.profilePicture);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Name & Photo
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage: imageUrl != null
+                      ? NetworkImage(imageUrl)
+                      : null,
+                  child: imageUrl == null
+                      ? Text(
+                          fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    fullName,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 2. Details (Age, Gender)
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (age != null)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.cake_outlined,
+                        size: 14,
+                        color: Colors.blue.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$age yrs',
+                        style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                      ),
+                    ],
+                  ),
+                if (age != null && homeless.gender != null)
+                  const SizedBox(height: 6),
+                if (homeless.gender != null)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person_outline,
+                        size: 14,
+                        color: Colors.purple.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        homeless.gender!,
+                        style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+
+          // 3. Location / Skills
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (homeless.location != null && homeless.location!.isNotEmpty)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: Colors.red.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          homeless.location!,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[800],
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                if (homeless.location != null &&
+                    homeless.skills != null &&
+                    homeless.skills!.isNotEmpty)
+                  const SizedBox(height: 6),
+                if (homeless.skills != null && homeless.skills!.isNotEmpty)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.work_outline,
+                        size: 14,
+                        color: Colors.orange.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          homeless.skills!.join(', '),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[800],
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+
+          // 4. Actions
+          Container(
+            width: 140,
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      FontAwesomeIcons.handHoldingHeart,
+                      color: AppTheme.primary,
+                      size: 14,
+                    ),
+                    onPressed: () {
+                      context.push(
+                        '/donor/homeless/${homeless.id}/donate',
+                        extra: homeless,
+                      );
+                    },
+                    tooltip: 'Donate',
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.visibility_outlined,
+                      color: Colors.green.shade700,
+                      size: 18,
+                    ),
+                    onPressed: () {
+                      context.push(
+                        '/donor/homeless/${homeless.id}',
+                        extra: homeless,
+                      );
+                    },
+                    tooltip: 'View Profile',
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

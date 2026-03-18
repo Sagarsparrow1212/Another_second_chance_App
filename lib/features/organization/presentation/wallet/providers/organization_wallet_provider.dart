@@ -22,3 +22,9 @@ final organizationWalletDetailsProvider =
 
       return response.data!;
     });
+
+final transactionsProvider =
+    FutureProvider.autoDispose.family<List<WalletTransaction>, String>((ref, filter) async {
+  final datasource = ref.watch(organizationWalletRemoteDatasourceProvider);
+  return await datasource.getTransactions(filter);
+});

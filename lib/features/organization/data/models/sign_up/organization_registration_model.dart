@@ -23,6 +23,8 @@ class OrganizationDetailModel {
 
   final OrgRejection? rejection;
 
+  final String? stripeAccountId;
+
   OrganizationDetailModel({
     this.id,
     required this.name,
@@ -47,6 +49,7 @@ class OrganizationDetailModel {
     this.photos,
 
     this.rejection,
+    this.stripeAccountId,
   });
 
   factory OrganizationDetailModel.fromJson(Map<String, dynamic> json) {
@@ -80,6 +83,7 @@ class OrganizationDetailModel {
       rejection: json["rejection"] != null
           ? OrgRejection.fromJson(json["rejection"])
           : null,
+      stripeAccountId: json['stripeAccountId'],
     );
   }
 
@@ -104,6 +108,7 @@ class OrganizationDetailModel {
       'documents': documents?.map((e) => e.toJson()).toList(),
       'photos': photos?.map((e) => e.toJson()).toList(),
       'rejection': rejection?.toJson(),
+      'stripeAccountId': stripeAccountId,
     };
   }
 }
@@ -163,5 +168,32 @@ class OrgRejection {
 
   Map<String, dynamic> toJson() {
     return {'reason': reason, 'rejectedAt': rejectedAt};
+  }
+}
+
+class OrganizationRegistrationResponse {
+  final bool success;
+  final String message;
+  final String? accountLink; // <-- STRIPE URL
+  final OrganizationDetailModel? data;
+
+  OrganizationRegistrationResponse({
+    required this.success,
+    required this.message,
+    this.accountLink,
+    this.data,
+  });
+
+  factory OrganizationRegistrationResponse.fromJson(Map<String, dynamic> json) {
+    // Expected structure: JSON -> data -> organization -> accountLinkUrl
+    final data = json['data'] as Map<String, dynamic>?;
+    final orgData = data?['organization'] as Map<String, dynamic>?;
+
+    return OrganizationRegistrationResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      accountLink: orgData?['accountLinkUrl'],
+      data: orgData != null ? OrganizationDetailModel.fromJson(orgData) : null,
+    );
   }
 }

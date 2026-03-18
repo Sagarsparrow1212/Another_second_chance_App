@@ -1,8 +1,10 @@
-import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:homelyhope/core/contanst/contanst.dart';
+import 'dart:async';
+import 'dart:math';
+import 'package:flutter/foundation.dart' as foundation;
 
 import 'package:intl/intl.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -56,6 +58,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   // Connectivity state
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   bool _isOnline = true;
+
+  bool _showEmoji = false;
 
   @override
   void initState() {
@@ -1345,238 +1349,377 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 18,
-            color: Colors.black,
+    return PopScope(
+      canPop: !_showEmoji,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _showEmoji) {
+          setState(() {
+            _showEmoji = false;
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FB),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 20,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          centerTitle: true,
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade100, width: 2),
+                ),
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: const Color(0xFFE9ECEF),
+                  backgroundImage: (_chatPartnerPhotoUrl?.isNotEmpty ?? false)
+                      ? NetworkImage(_chatPartnerPhotoUrl!)
+                      : null,
+                  child: !(_chatPartnerPhotoUrl?.isNotEmpty ?? false)
+                      ? Text(
+                          (_chatPartnerName?.isNotEmpty ?? false)
+                              ? _chatPartnerName![0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF6C757D),
+                          ),
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  _chatPartnerName ?? 'Loading...',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1A1A),
+                    letterSpacing: -0.5,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            // IconButton(
+            //   onPressed: () {},
+            //   icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF1A1A1A)),
+            // ),
+            // const SizedBox(width: 8),
+          ],
+          elevation: 0,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Divider(height: 1, color: Colors.grey.shade100),
           ),
         ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+        body: Column(
           children: [
-            CircleAvatar(
-              maxRadius: 20,
-              backgroundColor: Colors.grey[300],
-              backgroundImage: (_chatPartnerPhotoUrl?.isNotEmpty ?? false)
-                  ? NetworkImage(_chatPartnerPhotoUrl!)
-                  : null,
-              child: !(_chatPartnerPhotoUrl?.isNotEmpty ?? false)
-                  ? Text(
-                      (_chatPartnerName?.isNotEmpty ?? false)
-                          ? _chatPartnerName![0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+            // Messages list
+            Expanded(
+              child: _isLoading && _messages.isEmpty
+                  ? Center(child: AppLoader())
+                  : _messages.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline_rounded,
+                            size: 64,
+                            color: Colors.grey.shade200,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No messages yet',
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _chatPartnerName ?? 'Loading...',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (_typingUsername != null)
-                    Text(
-                      'typing...',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          // Messages list
-          Expanded(
-            child: _isLoading && _messages.isEmpty
-                ? Center(child: AppLoader())
-                : _messages.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No messages yet',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  )
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount:
-                        _messages.length +
-                        (_typingUsername != null ? 1 : 0) +
-                        (_isLoadingOlder ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      // Show loading indicator at top when loading older messages
-                      if (index == 0 && _isLoadingOlder) {
-                        return Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Center(child: AppLoader()),
-                        );
-                      }
+                  : ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      itemCount:
+                          _messages.length +
+                          (_typingUsername != null ? 1 : 0) +
+                          (_isLoadingOlder ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        // Show loading indicator at top when loading older messages
+                        if (index == 0 && _isLoadingOlder) {
+                          return Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Center(child: AppLoader()),
+                          );
+                        }
 
-                      // Adjust index if loading indicator is shown
-                      final messageIndex = _isLoadingOlder ? index - 1 : index;
+                        // Adjust index if loading indicator is shown
+                        final messageIndex = _isLoadingOlder
+                            ? index - 1
+                            : index;
 
-                      // Show typing indicator as last item
-                      if (messageIndex == _messages.length &&
-                          _typingUsername != null) {
-                        print(
-                          '⌨️ 🎨 Building typing indicator for: $_typingUsername',
-                        );
-                        return _buildTypingIndicator();
-                      }
+                        // Show typing indicator as last item
+                        if (messageIndex == _messages.length &&
+                            _typingUsername != null) {
+                          print(
+                            '⌨️ 🎨 Building typing indicator for: $_typingUsername',
+                          );
+                          return _buildTypingIndicator();
+                        }
 
-                      final message = _messages[messageIndex];
-                      final isMyMessage = _isMyMessage(message);
+                        final message = _messages[messageIndex];
+                        final isMyMessage = _isMyMessage(message);
+                        final bool isLastInGroup =
+                            messageIndex == _messages.length - 1 ||
+                            _isMyMessage(_messages[messageIndex + 1]) !=
+                                isMyMessage;
 
-                      return Align(
-                        alignment: isMyMessage
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 4,
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isMyMessage
-                                ? Color(0xFF15306C)
-                                : Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.7,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                message.text,
-                                style: TextStyle(
-                                  color: isMyMessage
-                                      ? Colors.white
-                                      : Colors.black87,
-                                  fontSize: 15,
+                        return Align(
+                          alignment: isMyMessage
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Container(
+                            margin: EdgeInsets.only(
+                              left: isMyMessage ? 60 : 16,
+                              right: isMyMessage ? 16 : 60,
+                              top: 4,
+                              bottom: isLastInGroup ? 8 : 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isMyMessage
+                                  ? const Color(0xFF15306C)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.only(
+                                topLeft: const Radius.circular(20),
+                                topRight: const Radius.circular(20),
+                                bottomLeft: Radius.circular(
+                                  isMyMessage ? 20 : 4,
+                                ),
+                                bottomRight: Radius.circular(
+                                  isMyMessage ? 4 : 20,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              // Time and read status row
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                              border: isMyMessage
+                                  ? null
+                                  : Border.all(color: Colors.grey.shade100),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    DateFormat(
-                                      'HH:mm',
-                                    ).format(message.createdAt),
+                                    message.text,
                                     style: TextStyle(
                                       color: isMyMessage
-                                          ? Colors.white70
-                                          : Colors.grey.shade600,
-                                      fontSize: 11,
+                                          ? Colors.white
+                                          : const Color(0xFF1A1A1A),
+                                      fontSize: 15,
+                                      height: 1.3,
                                     ),
                                   ),
-                                  // Show read status only for my messages
-                                  if (isMyMessage) ...[
-                                    const SizedBox(width: 4),
-                                    _isPendingMessage(message)
-                                        ? Icon(
-                                            Icons.access_time,
-                                            size: 16,
-                                            color: Colors.white70,
-                                          )
-                                        : _buildReadStatusIcon(message.read),
-                                  ],
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        DateFormat(
+                                          'hh:mm a',
+                                        ).format(message.createdAt),
+                                        style: TextStyle(
+                                          color: isMyMessage
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.6,
+                                                )
+                                              : Colors.grey.shade500,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      if (isMyMessage) ...[
+                                        const SizedBox(width: 4),
+                                        _isPendingMessage(message)
+                                            ? const Icon(
+                                                Icons.access_time_rounded,
+                                                size: 12,
+                                                color: Colors.white60,
+                                              )
+                                            : _buildReadStatusIcon(
+                                                message.read,
+                                              ),
+                                      ],
+                                    ],
+                                  ),
                                 ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-          // Message input
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.shade300,
-                  blurRadius: 2,
-                  offset: const Offset(0, -1),
-                ),
-              ],
+                        );
+                      },
+                    ),
             ),
-            child: SafeArea(
+            // Message input
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 15,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      focusNode: _messageFocusNode,
-                      textInputAction: TextInputAction.send,
-                      autofocus: true,
-                      controller: _messageController,
-                      decoration: InputDecoration(
-                        hintText: 'Type a message...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey.shade100,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8F9FB),
+                        borderRadius: BorderRadius.circular(25),
+                        border: Border.all(color: Colors.grey.shade100),
                       ),
-                      maxLines: null,
-                      textCapitalization: TextCapitalization.sentences,
-                      onSubmitted: (_) => _sendMessage(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: () {
+                              _messageFocusNode.unfocus();
+                              setState(() {
+                                _showEmoji = !_showEmoji;
+                              });
+                            },
+                            icon: Icon(
+                              _showEmoji
+                                  ? Icons.keyboard_rounded
+                                  : Icons.emoji_emotions_outlined,
+                              color: Colors.grey.shade400,
+                              size: 22,
+                            ),
+                          ),
+                          Expanded(
+                            child: TextField(
+                              focusNode: _messageFocusNode,
+                              onTap: () {
+                                if (_showEmoji) {
+                                  setState(() {
+                                    _showEmoji = false;
+                                  });
+                                }
+                              },
+                              textInputAction: TextInputAction.send,
+                              controller: _messageController,
+                              decoration: const InputDecoration(
+                                hintText: 'Type your message...',
+                                hintStyle: TextStyle(
+                                  color: Color(0xFFADB5BD),
+                                  fontSize: 14,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                              ),
+                              maxLines: 5,
+                              minLines: 1,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF1A1A1A),
+                              ),
+                              onSubmitted: (_) => _sendMessage(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: _sendMessage,
-                    icon: const Icon(Icons.send),
-                    color: Color(0xFF15306C),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.blue.shade50,
-                      padding: const EdgeInsets.all(12),
+                  const SizedBox(width: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF15306C),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF15306C).withValues(alpha: 0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      onPressed: _sendMessage,
+                      icon: const Icon(
+                        Icons.send_rounded,
+                        size: 20,
+                        color: Colors.white,
+                      ),
+                      // constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+            if (_showEmoji)
+              SizedBox(
+                height: 250,
+                child: EmojiPicker(
+                  onEmojiSelected: (category, emoji) {
+                    _messageController.text =
+                        _messageController.text + emoji.emoji;
+                  },
+                  config: Config(
+                    height: 250,
+                    checkPlatformCompatibility: true,
+                    emojiViewConfig: EmojiViewConfig(
+                      backgroundColor: const Color(0xFFF8F9FB),
+                      columns: 7,
+                      emojiSizeMax:
+                          28 *
+                          (foundation.defaultTargetPlatform ==
+                                  TargetPlatform.iOS
+                              ? 1.2
+                              : 1.0),
+                    ),
+                    categoryViewConfig: const CategoryViewConfig(
+                      backgroundColor: Colors.white,
+                      indicatorColor: Color(0xFF15306C),
+                      iconColorSelected: Color(0xFF15306C),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

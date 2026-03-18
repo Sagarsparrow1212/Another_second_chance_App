@@ -8,6 +8,7 @@ import '../providers/organization_wallet_provider.dart';
 import '../widgets/transaction_list_item.dart';
 import '../widgets/wallet_balance_card.dart';
 import 'withdraw_funds_page.dart';
+import 'transaction_history_page.dart';
 
 class OrganizationWalletPage extends ConsumerWidget {
   const OrganizationWalletPage({super.key});
@@ -68,13 +69,37 @@ class OrganizationWalletPage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                Text(
-                  'Recent Transactions',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.lightText,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Recent Transactions',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.lightText,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WithdrawalHistoryPage(
+                              initialFilter: 'all',
+                            ),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'View All',
+                        style: TextStyle(
+                          color: AppTheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 if (data.recentTransactions.isEmpty)

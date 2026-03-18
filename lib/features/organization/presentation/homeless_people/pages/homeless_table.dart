@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import '../../../../common/widgets/custom_appbar.dart';
 import '../providers/homeless_providers.dart';
 import 'add_homeless.dart';
+import 'package:homelyhope/core/utils/formatters.dart';
 
 class HomelessTable extends ConsumerStatefulWidget {
   const HomelessTable({super.key});
@@ -333,13 +334,13 @@ class _HomelessTableState extends ConsumerState<HomelessTable> {
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           ElevatedButton.icon(
-                            onPressed: () {
-                              final result = context.push(
+                            onPressed: () async {
+                              final result = await context.push(
                                 '/organization/add-homeless',
                               );
 
                               if (result == true && mounted) {
-                                ref.invalidate(homelessListProvider);
+                                _invalidateHomelessList();
                               }
                             },
                             icon: const Icon(Icons.add, size: 18),
@@ -518,10 +519,13 @@ class _HomelessTableState extends ConsumerState<HomelessTable> {
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                     ),
-                                    onPressed: () {
-                                      context.push(
+                                    onPressed: () async {
+                                      final result = await context.push(
                                         '/organization/add-homeless',
                                       );
+                                      if (result == true && mounted) {
+                                        _invalidateHomelessList();
+                                      }
                                     },
                                     icon: const Icon(Icons.add, size: 18),
                                     label: const Text(
@@ -657,6 +661,7 @@ class _HomelessTableState extends ConsumerState<HomelessTable> {
                               children: [
                                 // Name column - sortable
                                 Expanded(
+                                  flex: screenWidth > 600 ? 2 : 1,
                                   child: GestureDetector(
                                     onTap: () => _handleSort(SortBy.name),
                                     child: Row(
@@ -685,39 +690,109 @@ class _HomelessTableState extends ConsumerState<HomelessTable> {
                                     ),
                                   ),
                                 ),
-                                // Phone column - sortable
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 32,
-                                  ),
-                                  child: GestureDetector(
-                                    onTap: () => _handleSort(SortBy.phone),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          'Phone',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
-                                            color: _sortBy == SortBy.phone
-                                                ? AppTheme.primary
-                                                : Colors.black,
-                                          ),
-                                        ),
-                                        SizedBox(width: 4),
-                                        if (_sortBy == SortBy.phone)
-                                          Icon(
-                                            _sortOrder == SortOrder.ascending
-                                                ? Icons.arrow_upward
-                                                : Icons.arrow_downward,
-                                            size: 16,
-                                            color: AppTheme.primary,
-                                          ),
-                                      ],
+                                // Tablet Header Columns
+                                if (screenWidth > 600)
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Contact Info',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
                                     ),
                                   ),
-                                ),
+                                if (screenWidth > 600)
+                                  Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      'Details',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                if (screenWidth > 600)
+                                  Expanded(
+                                    flex: 1,
+                                    child: GestureDetector(
+                                      onTap: () => _handleSort(SortBy.date),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Added Date',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                              color: _sortBy == SortBy.date
+                                                  ? AppTheme.primary
+                                                  : Colors.black87,
+                                            ),
+                                          ),
+                                          SizedBox(width: 4),
+                                          if (_sortBy == SortBy.date)
+                                            Icon(
+                                              _sortOrder == SortOrder.ascending
+                                                  ? Icons.arrow_upward
+                                                  : Icons.arrow_downward,
+                                              size: 16,
+                                              color: AppTheme.primary,
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                if (screenWidth > 600)
+                                  Container(
+                                    width: 144,
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      'Actions',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                // Phone column - sortable (Mobile only)
+                                if (screenWidth <= 600)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: () => _handleSort(SortBy.phone),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Phone',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                              color: _sortBy == SortBy.phone
+                                                  ? AppTheme.primary
+                                                  : Colors.black,
+                                            ),
+                                          ),
+                                          SizedBox(width: 4),
+                                          if (_sortBy == SortBy.phone)
+                                            Icon(
+                                              _sortOrder == SortOrder.ascending
+                                                  ? Icons.arrow_upward
+                                                  : Icons.arrow_downward,
+                                              size: 16,
+                                              color: AppTheme.primary,
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -787,8 +862,14 @@ class _HomelessTableState extends ConsumerState<HomelessTable> {
   }
 
   Widget _buildHomelessCard(BuildContext context, dynamic homeless, int index) {
+    if (MediaQuery.of(context).size.width > 600) {
+      return _buildTabletHomelessCard(context, homeless, index);
+    }
+
     final fullName = homeless.fullName ?? homeless.name ?? 'Unknown';
-    final phone = homeless.phone ?? homeless.contactPhone ?? '';
+    final phone = Formatters.formatPhoneNumber(
+      homeless.phone ?? homeless.contactPhone ?? '',
+    );
     final imageUrl = _buildImageUrl(homeless.profilePicture);
 
     return ValueListenableBuilder<Set<String>>(
@@ -1100,6 +1181,224 @@ class _HomelessTableState extends ConsumerState<HomelessTable> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTabletHomelessCard(
+    BuildContext context,
+    dynamic homeless,
+    int index,
+  ) {
+    final fullName = homeless.fullName ?? homeless.name ?? 'Unknown';
+    final phone = Formatters.formatPhoneNumber(
+      homeless.phone ?? homeless.contactPhone ?? '',
+    );
+    final email = homeless.email ?? homeless.contactEmail ?? '';
+    final imageUrl = _buildImageUrl(homeless.profilePicture);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade400.withValues(alpha: 0.75)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Photo & Name
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage: imageUrl != null
+                      ? NetworkImage(imageUrl)
+                      : null,
+                  child: imageUrl == null
+                      ? Text(
+                          fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    fullName,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // 2. Contact Info
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (phone.isNotEmpty)
+                  Row(
+                    children: [
+                      Icon(Icons.phone, size: 14, color: AppTheme.primary),
+                      const SizedBox(width: 4),
+                      Text(
+                        phone,
+                        style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                      ),
+                    ],
+                  ),
+                if (phone.isNotEmpty && email.isNotEmpty)
+                  const SizedBox(height: 4),
+                if (email.isNotEmpty)
+                  Row(
+                    children: [
+                      Icon(Icons.email, size: 14, color: Colors.blue),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          email,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[800],
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          // 3. Details
+          Expanded(
+            flex: 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (homeless.age != null)
+                  Text(
+                    'Age: ${homeless.age}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                  ),
+                if (homeless.gender != null)
+                  Text(
+                    'Gender: ${homeless.gender}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                  ),
+              ],
+            ),
+          ),
+          // 4. Added Date
+          Expanded(
+            flex: 1,
+            child: homeless.createdAt != null && homeless.createdAt!.isNotEmpty
+                ? Text(
+                    _formatDate(homeless.createdAt!),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                  )
+                : const SizedBox.shrink(),
+          ),
+          // 5. Actions
+          SizedBox(
+            width: 144,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.visibility_outlined,
+                      color: Colors.green.shade700,
+                      size: 20,
+                    ),
+                    onPressed: () async {
+                      final result = await context.push(
+                        '/organization/view-homeless/${homeless.id}',
+                      );
+                      if (result == true && mounted)
+                        ref.invalidate(homelessListProvider);
+                    },
+                    tooltip: 'View',
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.edit_outlined,
+                      color: Colors.grey.shade700,
+                      size: 20,
+                    ),
+                    onPressed: () async {
+                      final result = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddHomeless(homelessToEdit: homeless),
+                        ),
+                      );
+                      if (result == true && mounted)
+                        ref.invalidate(homelessListProvider);
+                    },
+                    tooltip: 'Edit',
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    border: Border.all(color: Colors.red.shade200),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                      size: 20,
+                    ),
+                    onPressed: () => showDeleteHomelessDialog(
+                      context,
+                      homeless.id,
+                      ref,
+                      localHomelessList,
+                    ),
+                    tooltip: 'Delete',
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

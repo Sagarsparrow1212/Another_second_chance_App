@@ -382,16 +382,27 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final double drawerWidth = screenWidth > 600 ? 320 : screenWidth * 0.84;
+    final double fallbackDrawerWidth = screenWidth > 600
+        ? 320
+        : screenWidth * 0.7;
     final userRole = ref.watch(drawerNotifierProvider);
     final userRoleValue = userRole.value;
-    // Get current route from go_router state (more reliable than observer)
-    // Cache this to avoid expensive context lookup on every rebuild
-    final currentRoute = GoRouterState.of(context).uri.path;
+    // Get current route from go_router state safely
+    String currentRoute = '';
+    try {
+      currentRoute = GoRouterState.of(context).uri.path;
+    } catch (e) {
+      // Fallback if context is not under a RouteBase.builder (e.g. pushed page)
+      currentRoute = GoRouter.of(
+        context,
+      ).routerDelegate.currentConfiguration.uri.path;
+    }
     print('Current Route in Drawer: $currentRoute');
 
     if (userRole.isLoading) {
       return Drawer(
-        width: screenWidth * 0.7,
+        width: fallbackDrawerWidth,
         child: Center(child: AppLoader()),
       );
     }
@@ -399,7 +410,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
     // If user is not logged in (null role), don't show drawer
     if (userRoleValue == null) {
       return Drawer(
-        width: screenWidth * 0.7,
+        width: fallbackDrawerWidth,
         child: const Center(
           child: Padding(
             padding: EdgeInsets.all(16.0),
@@ -414,7 +425,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
 
     if (userRole.hasError) {
       return Drawer(
-        width: screenWidth * 0.7,
+        width: fallbackDrawerWidth,
         child: const Center(child: Text('Unable to load user role')),
       );
     }
@@ -424,7 +435,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
     final logoutItem = getLogoutItem(userRoleValue);
 
     return Drawer(
-      width: screenWidth * 0.84,
+      width: drawerWidth,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
@@ -447,6 +458,18 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                 backgroundImage: (userProfilePicture?.isNotEmpty ?? false)
                     ? NetworkImage(userProfilePicture!)
                     : null,
+                onBackgroundImageError:
+                    (userProfilePicture?.isNotEmpty ?? false)
+                    ? (exception, stackTrace) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            setState(() {
+                              userProfilePicture = null;
+                            });
+                          }
+                        });
+                      }
+                    : null,
                 child: !(userProfilePicture?.isNotEmpty ?? false)
                     ? Text(
                         (userName ?? 'U')[0].toUpperCase(),
@@ -461,18 +484,15 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
               accountName: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    overflow: TextOverflow.ellipsis,
-                    userName?.length != null && userName!.length > 18
-                        ? '${userName?.substring(0, 18)}...'
-                        : userName ?? 'User',
-                    style: TextStyle(
-                      fontSize:
-                          userName?.length != null && userName!.length > 18
-                          ? 12
-                          : 15,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Text(
+                      userName ?? 'User',
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   Padding(
@@ -606,23 +626,23 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
 
           // Navigate to route if it exists and is not empty
           if (route.isNotEmpty) {
-            if (currentRoute == route) {
-              // Already on this route, just close drawer (already done above)
-              return;
-            } else {
-              // If navigating to Dashboard, use go() to reset navigation stack
-              if (_isDashboardRoute(route)) {
-                context.go(route);
-              }
-              // If navigating from Dashboard to a drawer item, use push() to maintain back navigation
-              else if (_isDashboardRoute(currentRoute)) {
-                context.push(route);
-              }
-              // If navigating from one drawer item to another, use pushReplacement()
-              // This replaces the current drawer item but maintains back navigation to Dashboard
-              else {
-                context.pushReplacement(route);
-              }
+            // Check if we are already on the dashboard
+            if (_isDashboardRoute(currentRoute) && _isDashboardRoute(route)) {
+              return; // Already on dashboard, do nothing
+            }
+
+            // If navigating to Dashboard, use go() to reset navigation stack
+            if (_isDashboardRoute(route)) {
+              context.go(route);
+            }
+            // If navigating from Dashboard to a drawer item, use push() to maintain back navigation
+            else if (_isDashboardRoute(currentRoute)) {
+              context.push(route);
+            }
+            // If navigating from one drawer item to another (or the same item pushed on top of another), use go()
+            // This replaces the current stack but maintains the root Dashboard underneath in shell routes
+            else {
+              context.go(route);
             }
           }
         },
