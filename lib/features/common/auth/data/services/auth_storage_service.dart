@@ -53,6 +53,7 @@ class AuthStorageService {
       await authBox.put('isLoggedIn', true);
 
       // Optionally save organization data if available
+      final userBox = await Hive.openBox(_userBoxName);
       if (user['role'] == 'organization') {
         final organization = data['organization'] as Map<String, dynamic>?;
         if (organization != null) {
@@ -67,6 +68,7 @@ class AuthStorageService {
             'organizationName',
             organization['orgName'] ?? '',
           );
+          await userBox.put('userName', organization['orgName'] ?? '');
         }
       } else if (user['role'] == 'merchant') {
         final merchant = data['merchant'] as Map<String, dynamic>?;
@@ -75,6 +77,7 @@ class AuthStorageService {
           await merchantBox.put('merchantId', merchant['id']?.toString() ?? '');
           await merchantBox.put('merchantName', merchant['merchantName'] ?? '');
           await merchantBox.put('merchantDetails', merchant);
+          await userBox.put('userName', merchant['merchantName'] ?? '');
         }
       } else if (user['role'] == 'homeless') {
         final homeless = data['homeless'] as Map<String, dynamic>?;
@@ -83,6 +86,7 @@ class AuthStorageService {
           await homelessBox.put('homelessId', homeless['id']?.toString() ?? '');
           await homelessBox.put('homelessName', homeless['homelessName'] ?? '');
           await homelessBox.put('homelessDetails', homeless);
+          await userBox.put('userName', homeless['homelessName'] ?? '');
         }
       } else if (user['role'] == 'donor') {
         final donor = data['donor'] as Map<String, dynamic>?;
@@ -91,6 +95,7 @@ class AuthStorageService {
           await donorBox.put('donorId', donor['id']?.toString() ?? '');
           await donorBox.put('donorName', donor['donorName'] ?? '');
           await donorBox.put('donorDetails', donor);
+          await userBox.put('userName', donor['donorName'] ?? '');
         }
       }
     } catch (e) {

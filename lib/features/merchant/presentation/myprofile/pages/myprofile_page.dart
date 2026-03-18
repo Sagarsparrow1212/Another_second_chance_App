@@ -9,6 +9,7 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../common/widgets/custom_appbar.dart';
 import '../../../data/models/myprofile/myprofile_model.dart';
 import '../providers/profile_provider.dart';
+import 'package:homelyhope/core/utils/formatters.dart';
 
 class MyProfilePage extends ConsumerStatefulWidget {
   const MyProfilePage({super.key});
@@ -204,7 +205,7 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
             icon: Icons.phone,
 
             label: 'Phone Number',
-            value: data.phoneNumber,
+            value: Formatters.formatPhoneNumber(data.phoneNumber),
           ),
           const SizedBox(height: 12),
           _buildDetailRow(
@@ -316,8 +317,8 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
           const SizedBox(height: 16),
           if (data.gstCertificate.isNotEmpty)
             _buildDocumentItem(
-              title: 'GST Certificate',
-              documentType: 'PDF Document',
+              title: 'Certificate of Incorporation',
+              // documentType: 'PDF Document',
               iconColor: Colors.orange,
               backgroundColor: Colors.orange.shade50,
               onView: () {
@@ -326,22 +327,11 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
               },
             ),
           if (data.gstCertificate.isNotEmpty) const SizedBox(height: 12),
-          if (data.businessLicense.isNotEmpty)
-            _buildDocumentItem(
-              title: 'Business License',
-              documentType: 'Image Document',
-              iconColor: Colors.blue,
-              backgroundColor: Colors.blue.shade50,
-              onView: () {
-                // TODO: View Business License
-                _viewDocument(data.businessLicense);
-              },
-            ),
-          if (data.businessLicense.isNotEmpty) const SizedBox(height: 12),
+
           if (data.photoId.isNotEmpty)
             _buildDocumentItem(
-              title: 'Photo ID',
-              documentType: 'Image Document',
+              title: 'Photo ID (State ID Card)',
+              //documentType: 'Image Document',
               iconColor: Colors.purple,
               backgroundColor: Colors.purple.shade50,
               onView: () {
@@ -577,7 +567,7 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
 
   Widget _buildDocumentItem({
     required String title,
-    required String documentType,
+    // required String documentType,
     required Color iconColor,
     required Color backgroundColor,
     required VoidCallback onView,
@@ -612,11 +602,11 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
                     color: Colors.grey[900],
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  documentType,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
+                // const SizedBox(height: 2),
+                // Text(
+                //   documentType,
+                //   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                // ),
               ],
             ),
           ),

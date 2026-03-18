@@ -16,10 +16,13 @@ class AuthRemoteDatasource {
       if (fcmToken != null) {
         data["fcmToken"] = fcmToken;
       }
+      print('$apiBaseUrl/auth/login');
       final response = await dio.post('$apiBaseUrl/auth/login', data: data);
-
+      print(response.data);
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
+      print(e);
+      print(e.response?.data);
       final msg = e.response?.data?["message"] ?? "Something went wrong";
       throw Exception(msg);
     }

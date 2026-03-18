@@ -133,12 +133,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
             ),
 
             // Recent Activity
-            SliverToBoxAdapter(
-              child: _buildAnimatedSection(
-                index: 3,
-                child: _buildRecentActivity(),
-              ),
-            ),
+            // SliverToBoxAdapter(
+            //   child: _buildAnimatedSection(
+            //     index: 3,
+            //     child: _buildRecentActivity(),
+            //   ),
+            // ),
           ],
         ),
       ),

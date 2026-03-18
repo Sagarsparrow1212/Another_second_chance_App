@@ -10,7 +10,7 @@ class OrganizationRemoteDatasource {
   OrganizationRemoteDatasource(this.dio);
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
-  Future<OrganizationDetailModel> register(
+  Future<OrganizationRegistrationResponse> register(
     OrganizationDetailModel model,
   ) async {
     try {
@@ -18,6 +18,7 @@ class OrganizationRemoteDatasource {
       final formData = FormData.fromMap({
         'email': model.email,
         'password': model.password,
+        "role": "organization",
         'orgName': model.name,
         'orgType': model.orgType,
         'streetAddress': model.streetAddress,
@@ -48,7 +49,7 @@ class OrganizationRemoteDatasource {
       }
 
       final response = await dio.post(
-        '$apiBaseUrl/organizations/register',
+        '$apiBaseUrl/auth/register',
         data: formData,
         options: Options(contentType: 'multipart/form-data'),
       );
@@ -60,31 +61,8 @@ class OrganizationRemoteDatasource {
 
       // Parse the response data
       final responseData = response.data;
-      log('Registration response.data type: ${responseData.runtimeType}');
-      log('Registration response.data: $responseData');
-
-      // Handle different response structures
-      Map<String, dynamic> organizationData;
-
-      if (responseData is Map<String, dynamic>) {
-        // Check if response has a 'data' field
-        if (responseData.containsKey('data')) {
-          final data = responseData['data'];
-          if (data is Map<String, dynamic>) {
-            organizationData = data;
-          } else {
-            throw Exception('Invalid response format: data field is not a Map');
-          }
-        } else {
-          // Response data itself is the organization data
-          organizationData = responseData;
-        }
-      } else {
-        throw Exception('Invalid response format: response is not a Map');
-      }
-
-      log('organizationData keys: ${organizationData.keys.toList()}');
-      return OrganizationDetailModel.fromJson(organizationData);
+      // Pass the entire response data to the response model parser
+      return OrganizationRegistrationResponse.fromJson(responseData);
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Something went wrong';
       throw Exception(msg);

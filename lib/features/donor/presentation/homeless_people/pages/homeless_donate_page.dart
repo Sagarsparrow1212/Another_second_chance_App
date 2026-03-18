@@ -67,12 +67,14 @@ class _DonorHomelessDonatePageState
       });
       final headers = await getHeaders();
       // 1️⃣ Call backend
+      print(widget.homeless.id);
       final response = await http.post(
         Uri.parse("$apiBaseUrl/payments/create-payment-intent"),
         headers: headers,
         body: jsonEncode({
           'amount': double.parse(_amountController.text.trim()),
           'currency': 'usd',
+          'organization_id': widget.homeless.id,
         }),
       );
 

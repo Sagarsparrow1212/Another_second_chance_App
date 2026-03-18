@@ -8,6 +8,7 @@ import 'package:homelyhope/features/donor/data/models/profile/donor_profile_mode
 import 'package:intl/intl.dart';
 import '../../../../common/Drawer/pages/dynamic_drawer.dart';
 import '../providers/donor_profile_provider.dart';
+import 'package:homelyhope/core/utils/formatters.dart';
 
 class MyProfilePage extends ConsumerStatefulWidget {
   const MyProfilePage({super.key});
@@ -171,7 +172,7 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
                             iconColor: Colors.green,
                             label: 'Phone',
                             value: profile.phone.isNotEmpty
-                                ? profile.phone
+                                ? Formatters.formatPhoneNumber(profile.phone)
                                 : 'Not provided',
                           ),
                           _buildInfoRow(

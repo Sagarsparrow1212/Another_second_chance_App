@@ -470,15 +470,10 @@ class _SignUpMerchantPageState extends ConsumerState<SignUpMerchantPage> {
           // Clear draft after successful registration
           await MerchantDraftStorageService.clearDraft();
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                response.message.isNotEmpty
-                    ? response.message
-                    : 'Registration completed successfully!',
-              ),
-              backgroundColor: Colors.green,
-            ),
+          ref.read(snackbarServiceProvider).showSuccess(
+            response.message.isNotEmpty
+                ? response.message
+                : 'Registration completed successfully!',
           );
 
           // Navigate back or to merchant dashboard
@@ -528,20 +523,28 @@ class _SignUpMerchantPageState extends ConsumerState<SignUpMerchantPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 24),
-              IconButton(
-                onPressed: () {
-                  context.pop();
-                },
-                icon: Icon(Icons.arrow_back_ios_new_rounded),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      context.pop();
+                    },
+                    icon: Icon(Icons.arrow_back_ios_new_rounded),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 24.0, top: 0.0),
+                    child: Text(
+                      isEditMode ? 'Edit Profile' : 'Register Merchant',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.only(left: 24.0, top: 0.0),
-                child: Text(
-                  isEditMode ? 'Edit Profile' : 'Register Merchant',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-              ),
+
               // Stepper wrapped in RepaintBoundary to prevent unnecessary repaints
               Padding(
                 padding: const EdgeInsets.only(
@@ -1122,7 +1125,7 @@ class _SignUpMerchantPageState extends ConsumerState<SignUpMerchantPage> {
         const SizedBox(height: 20),
         // GST Certificate (Optional)
         _buildDocumentUpload(
-          title: 'GST Certificate',
+          title: 'Certificate of Incorporation',
           optional: true,
           filePath: _gstCertificatePath,
           fileName: _gstCertificateName,
@@ -1139,28 +1142,28 @@ class _SignUpMerchantPageState extends ConsumerState<SignUpMerchantPage> {
         ),
         const SizedBox(height: 16),
         // Business License (Optional)
-        _buildDocumentUpload(
-          title: 'Business License',
-          optional: true,
-          filePath: _businessLicensePath,
-          fileName: _businessLicenseName,
-          onPick: () => _pickFile(documentType: 'license'),
-          onRemove: () {
-            setState(() {
-              _businessLicensePath = null;
-              _businessLicenseName = null;
-            });
-            ref
-                .read(signUpNotifierProvider.notifier)
-                .setBusinessLicense(null, null);
-          },
-        ),
+        // _buildDocumentUpload(
+        //   title: 'Business License',
+        //   optional: true,
+        //   filePath: _businessLicensePath,
+        //   fileName: _businessLicenseName,
+        //   onPick: () => _pickFile(documentType: 'license'),
+        //   onRemove: () {
+        //     setState(() {
+        //       _businessLicensePath = null;
+        //       _businessLicenseName = null;
+        //     });
+        //     ref
+        //         .read(signUpNotifierProvider.notifier)
+        //         .setBusinessLicense(null, null);
+        //   },
+        // ),
         const SizedBox(height: 16),
         // Photo ID (Required)
         _buildDocumentUpload(
-          title: 'Photo ID',
+          title: 'ID Card',
           optional: false,
-          subtitle: 'Aadhaar, PAN, or Driving License',
+          subtitle: 'State ID Card',
           filePath: _photoIdPath,
           fileName: _photoIdName,
           onPick: () => _pickFile(documentType: 'photoId'),
@@ -1174,7 +1177,7 @@ class _SignUpMerchantPageState extends ConsumerState<SignUpMerchantPage> {
         ),
 
         if (!isEditMode) ...[
-          _TermsCheckbox(),
+          //  _TermsCheckbox(),
           const SizedBox(height: 32),
         ] else
           const SizedBox(height: 16),
@@ -1207,7 +1210,11 @@ class _SignUpMerchantPageState extends ConsumerState<SignUpMerchantPage> {
                   ),
                 ),
                 child: _isRegistering
-                    ? SizedBox(height: 20, width: 20, child: AppLoader())
+                    ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
                     : Text(isEditMode ? 'Update' : 'Register'),
               ),
             ),
@@ -1215,29 +1222,29 @@ class _SignUpMerchantPageState extends ConsumerState<SignUpMerchantPage> {
         ),
         const SizedBox(height: 12),
         // Save as Draft Button
-        if (!isEditMode) ...[
-          OutlinedButton(
-            onPressed: _isSavingDraft || _isRegistering ? null : _saveDraft,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.primary,
-              side: BorderSide(color: AppTheme.primary, width: 1.5),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: _isSavingDraft
-                ? SizedBox(height: 20, width: 20, child: AppLoader())
-                : const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.save_outlined, size: 20),
-                      SizedBox(width: 8),
-                      Text('Save as Draft'),
-                    ],
-                  ),
-          ),
-        ],
+        // if (!isEditMode) ...[
+        //   OutlinedButton(
+        //     onPressed: _isSavingDraft || _isRegistering ? null : _saveDraft,
+        //     style: OutlinedButton.styleFrom(
+        //       foregroundColor: AppTheme.primary,
+        //       side: BorderSide(color: AppTheme.primary, width: 1.5),
+        //       padding: const EdgeInsets.symmetric(vertical: 16),
+        //       shape: RoundedRectangleBorder(
+        //         borderRadius: BorderRadius.circular(12),
+        //       ),
+        //     ),
+        //     child: _isSavingDraft
+        //         ? SizedBox(height: 20, width: 20, child: AppLoader())
+        //         : const Row(
+        //             mainAxisAlignment: MainAxisAlignment.center,
+        //             children: [
+        //               Icon(Icons.save_outlined, size: 20),
+        //               SizedBox(width: 8),
+        //               Text('Save as Draft'),
+        //             ],
+        //           ),
+        //   ),
+        // ],
       ],
     );
   }

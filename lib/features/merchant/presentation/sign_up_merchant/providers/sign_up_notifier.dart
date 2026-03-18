@@ -34,7 +34,7 @@ class SignUpState {
 
   SignUpState({
     this.currentStep = 0,
-    this.isAgreed = false,
+    this.isAgreed = true,
     this.isEditMode = false,
     this.merchantId,
     this.businessName = '',

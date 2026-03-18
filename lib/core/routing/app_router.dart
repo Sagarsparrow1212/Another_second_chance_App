@@ -11,6 +11,7 @@ import '../../features/homeless/presentation/routes/homeless_routes.dart';
 import '../../features/donor/presentation/routes/donor_routes.dart';
 import '../../features/common/chat/presentation/routes/chat_routes.dart';
 import '../../features/debug/presentation/pages/firestore_test_screen.dart';
+import '../../features/common/notifications/presentation/pages/notification_page.dart';
 
 final appRoutesObserver = AppRoutesObserver();
 
@@ -41,6 +42,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/firestore-test',
       builder: (context, state) => const FirestoreTestScreen(),
+    ),
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => const NotificationPage(),
     ),
   ],
   redirect: (context, state) async {

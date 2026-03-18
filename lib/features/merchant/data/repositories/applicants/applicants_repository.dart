@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 abstract class ApplicantsRepository {
   Future<List<MerchantJobApplicationModel>> getMerchantApplications();
   Future<void> approveApplication(String applicationId);
+  Future<void> rejectApplication(String applicationId);
 }
 
 class ApplicantsRepositoryImpl implements ApplicantsRepository {
@@ -25,6 +26,14 @@ class ApplicantsRepositoryImpl implements ApplicantsRepository {
   Future<void> approveApplication(String applicationId) async {
     try {
       await remoteDatasource.approveApplication(applicationId);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+  @override
+  Future<void> rejectApplication(String applicationId) async {
+    try {
+      await remoteDatasource.rejectApplication(applicationId);
     } catch (e) {
       throw Exception(e.toString());
     }

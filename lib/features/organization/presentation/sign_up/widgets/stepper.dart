@@ -19,9 +19,9 @@ class Steppers extends ConsumerStatefulWidget {
 
 class _SteppersState extends ConsumerState<Steppers> {
   final List<StepData> _steps = const [
-    StepData(title: 'Organisation Details', subtitle: ''),
-    StepData(title: 'Address Details', subtitle: ''),
-    StepData(title: 'Upload Documents', subtitle: ''),
+    StepData(title: 'Organisation\nDetails', subtitle: ''),
+    StepData(title: 'Address\nDetails', subtitle: ''),
+    StepData(title: 'Upload\nDocuments', subtitle: ''),
   ];
 
   // Track which steps have been animated to prevent replay
@@ -48,7 +48,6 @@ class _SteppersState extends ConsumerState<Steppers> {
   }
 
   Widget _buildStepIndicator() {
-    final screenWidth = MediaQuery.of(context).size.width;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
@@ -56,6 +55,7 @@ class _SteppersState extends ConsumerState<Steppers> {
         children: [
           for (int i = 0; i < _steps.length; i++) ...[
             Expanded(
+              flex: 5,
               child: GestureDetector(
                 // onTap: () => widget.onStepChanged(i),
                 child: _buildStepItem(
@@ -67,10 +67,13 @@ class _SteppersState extends ConsumerState<Steppers> {
               ),
             ),
             if (i != _steps.length - 1)
-              SizedBox(
-                width: screenWidth * 0.2,
+              Expanded(
+                flex: 2,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20.0,
+                    horizontal: 4.0,
+                  ),
                   child: _buildConnector(i < widget.currentStep),
                 ),
               ),
@@ -160,22 +163,22 @@ class _SteppersState extends ConsumerState<Steppers> {
 
         // --- FIX: Equal height for title + subtitle block ---
         SizedBox(
-          height: 40, // adjust to fit 1 or 2 lines
+          height: 60, // adjust to fit 1 or 2 lines
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Text(
                 step.title,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                   color: isActive || isCompleted
                       ? AppTheme.primary
                       : Colors.grey[600],
                 ),
                 textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                overflow: TextOverflow.visible,
               ),
               if (step.subtitle != null) ...[
                 const SizedBox(height: 4),

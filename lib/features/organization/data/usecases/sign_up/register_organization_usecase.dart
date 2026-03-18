@@ -6,7 +6,9 @@ class RegisterOrganizationUseCase {
 
   RegisterOrganizationUseCase(this.repository);
 
-  Future<OrganizationDetailModel> call(OrganizationDetailModel model) async {
+  Future<OrganizationRegistrationResponse> call(
+    OrganizationDetailModel model,
+  ) async {
     return await repository.register(model);
   }
 

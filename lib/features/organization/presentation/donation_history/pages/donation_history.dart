@@ -40,8 +40,14 @@ class _DonationHistoryState extends ConsumerState<DonationHistoryPage> {
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300, width: 1),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: TextField(
                 controller: _searchController,
@@ -52,43 +58,31 @@ class _DonationHistoryState extends ConsumerState<DonationHistoryPage> {
                 ),
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 8,
+                    horizontal: 20,
+                    vertical: 16,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade300,
-                      width: 1,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade300,
-                      width: 0.5,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: AppTheme.primary, width: 1.5),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
                   ),
                   filled: true,
                   fillColor: Colors.white,
-                  hintText: 'Search',
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: Colors.grey.shade400,
-                    size: 20,
+                  hintText: 'Search donations...',
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.only(left: 12, right: 8),
+                    child: Icon(
+                      Icons.search_rounded,
+                      color: Colors.grey.shade400,
+                      size: 24,
+                    ),
                   ),
                   prefixIconConstraints: const BoxConstraints(
                     minWidth: 40,
-                    minHeight: 20,
+                    minHeight: 24,
                   ),
-                  isDense: false,
                   hintStyle: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
                     color: Colors.grey.shade400,
                   ),
                 ),

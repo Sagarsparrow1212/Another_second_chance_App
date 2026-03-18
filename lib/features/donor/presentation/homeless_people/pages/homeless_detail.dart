@@ -4,6 +4,7 @@ import 'package:homelyhope/core/contanst/contanst.dart';
 import 'package:homelyhope/core/theme/app_theme.dart';
 import 'package:homelyhope/features/common/widgets/custom_appbar.dart';
 import 'package:homelyhope/features/donor/data/datasources/homeless_people/homeless_remote_datasource.dart';
+import 'package:homelyhope/core/utils/formatters.dart';
 
 class HomelessDetailPage extends StatelessWidget {
   final String homelessId;
@@ -115,7 +116,9 @@ class HomelessDetailPage extends StatelessWidget {
                   _contactRow(
                     icon: Icons.phone_outlined,
                     label: 'Phone',
-                    value: person.contactPhone ?? 'Not provided',
+                    value: person.contactPhone != null
+                        ? Formatters.formatPhoneNumber(person.contactPhone!)
+                        : 'Not provided',
                     onTap: person.contactPhone == null
                         ? null
                         : () {

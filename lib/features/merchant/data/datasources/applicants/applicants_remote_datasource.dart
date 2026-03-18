@@ -69,6 +69,26 @@ class ApplicantsRemoteDatasource {
     }
   }
 
+  Future<void> rejectApplication(String applicationId) async {
+    try {
+      final token = await _secureStorage.read(key: 'token');
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+
+      final url = '$apiBaseUrl/applications/$applicationId/reject';
+
+      await dio.patch(
+        url,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+    } on DioException catch (e) {
+      final msg =
+          e.response?.data?['message'] ?? 'Failed to reject application';
+      throw Exception(msg);
+    }
+  }
+
   List<MerchantJobApplicationModel> _getMockApplications() {
     return [
       MerchantJobApplicationModel.fromJson({

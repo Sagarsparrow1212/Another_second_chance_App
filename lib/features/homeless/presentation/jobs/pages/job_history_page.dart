@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:homelyhope/core/contanst/contanst.dart';
-import 'package:homelyhope/core/theme/app_theme.dart';
+
 import 'package:homelyhope/features/common/widgets/custom_appbar.dart';
 import 'package:homelyhope/features/organization/data/models/jobs/job_application_model.dart';
 import 'package:homelyhope/features/organization/presentation/jobs/providers/jobs_provider.dart';
@@ -45,24 +45,31 @@ class _JobHistoryPageState extends ConsumerState<JobHistoryPage>
             margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
+              color: const Color(0xFFF5F7FA),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: TabBar(
               controller: _tabController,
               indicator: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              labelColor: AppTheme.primary,
-              unselectedLabelColor: Colors.grey.shade600,
+              labelColor: const Color(0xFF1A1A1A),
+              unselectedLabelColor: Colors.grey.shade500,
               labelStyle: const TextStyle(
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
               indicatorSize: TabBarIndicatorSize.tab,
               dividerColor: Colors.transparent,
+              indicatorPadding: const EdgeInsets.all(2),
               tabs: const [
                 Tab(child: Text('Applied')),
                 Tab(child: Text('Completed')),
@@ -132,7 +139,7 @@ class _JobHistoryPageState extends ConsumerState<JobHistoryPage>
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: applications.length,
       itemBuilder: (context, index) {
         final app = applications[index];
@@ -143,54 +150,73 @@ class _JobHistoryPageState extends ConsumerState<JobHistoryPage>
 
   Widget _buildApplicationCard(JobApplicationModel app) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(color: Colors.grey.shade100, width: 0.8),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        app.job.title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              app.job.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1A1A1A),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildStatusBadge(app.status),
+                        ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       if (app.job.merchant != null)
                         Row(
                           children: [
-                            Icon(
-                              Icons.business,
-                              size: 14,
-                              color: Colors.grey.shade500,
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Icon(
+                                Icons.business,
+                                size: 12,
+                                color: Colors.grey.shade400,
+                              ),
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 8),
                             Text(
                               app.job.merchant!.businessName,
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -198,60 +224,36 @@ class _JobHistoryPageState extends ConsumerState<JobHistoryPage>
                     ],
                   ),
                 ),
-                SizedBox(width: 8),
-                _buildStatusBadge(app.status),
               ],
             ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50.withOpacity(0.5),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+              border: Border(top: BorderSide(color: Colors.grey.shade100, width: 0.8)),
+            ),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 14,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Applied on ${_formatDate(app.appliedAt)}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 13,
+                  color: Colors.grey.shade400,
                 ),
-                // InkWell(
-                //   onTap: () {
-                //     // TODO: View details
-                //   },
-                //   child: Row(
-                //     children: [
-                //       Text(
-                //         'View Details',
-                //         style: TextStyle(
-                //           fontSize: 13,
-                //           fontWeight: FontWeight.w600,
-                //           color: AppTheme.primary,
-                //         ),
-                //       ),
-                //       const SizedBox(width: 4),
-                //       Icon(
-                //         Icons.chevron_right,
-                //         size: 16,
-                //         color: AppTheme.primary,
-                //       ),
-                //     ],
-                //   ),
-                // ),
+                const SizedBox(width: 6),
+                Text(
+                  'Applied on ${_formatDate(app.appliedAt)}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade500,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -263,28 +265,29 @@ class _JobHistoryPageState extends ConsumerState<JobHistoryPage>
 
     switch (status.toLowerCase()) {
       case 'interviewing':
-        color = Colors.blue.shade700;
-        bgColor = Colors.blue.shade50;
+        color = const Color(0xFF1976D2);
+        bgColor = color.withValues(alpha: 0.08);
         break;
       case 'hired':
-        color = Colors.green.shade700;
-        bgColor = Colors.green.shade50;
+        color = const Color(0xFF2E7D32);
+        bgColor = color.withValues(alpha: 0.08);
         break;
       case 'rejected':
       case 'closed':
-        color = Colors.grey.shade700;
-        bgColor = Colors.grey.shade100;
+        color = const Color(0xFFC62828);
+        bgColor = color.withValues(alpha: 0.08);
         break;
       default: // pending
-        color = Colors.orange.shade700;
-        bgColor = Colors.orange.shade50;
+        color = const Color(0xFFEF6C00);
+        bgColor = color.withValues(alpha: 0.08);
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.1), width: 0.5),
       ),
       child: Text(
         text,

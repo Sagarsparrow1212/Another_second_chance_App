@@ -10,6 +10,45 @@ import 'package:homelyhope/features/donor/data/models/profile/donor_profile_mode
 import 'package:homelyhope/features/donor/data/services/donor_draft_storage_service.dart';
 import 'package:homelyhope/features/donor/presentation/sign_up/providers/donor_providers.dart';
 import '../../../../core/providers/snackbar_provider.dart';
+import '../../../organization/presentation/sign_up/pages/sign_up_page.dart';
+
+class _UsNumberTextInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final newText = newValue.text;
+
+    if (newText.length > 14) {
+      return oldValue;
+    }
+
+    // Identify if backspacing
+    if (newValue.text.length < oldValue.text.length) {
+      return newValue;
+    }
+
+    // Check if new character is waiting to be formatted
+    var buffer = StringBuffer();
+    // Remove all non-digits
+    String digits = newText.replaceAll(RegExp(r'\D'), '');
+
+    // Format based on length
+    for (int i = 0; i < digits.length; i++) {
+      if (i == 0) buffer.write('(');
+      if (i == 3) buffer.write(') ');
+      if (i == 6) buffer.write('-');
+      buffer.write(digits[i]);
+    }
+
+    String formatted = buffer.toString();
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
 
 class SignUpDonorPage extends ConsumerStatefulWidget {
   final DonorProfileModel? donorToEdit;
@@ -357,20 +396,26 @@ class _SignUpDonorPageState extends ConsumerState<SignUpDonorPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 24),
-            IconButton(
-              onPressed: () {
-                context.pop();
-              },
-              icon: Icon(Icons.arrow_back_ios_new_rounded),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    context.pop();
+                  },
+                  icon: Icon(Icons.arrow_back_ios_new_rounded),
+                ),
+                SizedBox(width: 24),
+                Padding(
+                  padding: const EdgeInsets.only(left: 24.0, top: 0.0),
+                  child: Text(
+                    isEditMode ? 'Edit Profile' : 'Register as Donor',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.only(left: 24.0, top: 0.0),
-              child: Text(
-                isEditMode ? 'Edit Profile' : 'Register as Donor',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ),
+
+            //SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.only(
                 left: 24.0,
@@ -393,8 +438,8 @@ class _SignUpDonorPageState extends ConsumerState<SignUpDonorPage> {
         Text(
           title,
           style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
             color: AppTheme.lightText,
             letterSpacing: -0.5,
           ),
@@ -814,7 +859,7 @@ class _SignUpDonorPageState extends ConsumerState<SignUpDonorPage> {
             icon: Icons.phone_outlined,
             keyboardType: TextInputType.phone,
             autofillHints: [AutofillHints.telephoneNumber],
-            hintText: '+1234567890',
+            hintText: '(123) 456-7890',
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Phone Number is required';
@@ -822,7 +867,9 @@ class _SignUpDonorPageState extends ConsumerState<SignUpDonorPage> {
               return null;
             },
             inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-() ]')),
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+              UsNumberTextInputFormatter(),
+              LengthLimitingTextInputFormatter(14),
             ],
           ),
           const SizedBox(height: 32),

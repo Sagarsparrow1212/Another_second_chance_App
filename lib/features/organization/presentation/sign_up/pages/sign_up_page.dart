@@ -14,6 +14,7 @@ import 'package:homelyhope/features/organization/presentation/sign_up/providers/
 import 'package:homelyhope/features/organization/presentation/sign_up/providers/sign_up_notifier.dart';
 import 'package:homelyhope/features/organization/presentation/sign_up/widgets/stepper.dart';
 import 'package:sms_autofill/sms_autofill.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/providers/snackbar_provider.dart';
 
@@ -48,8 +49,14 @@ class _OrgSignUpPageState extends ConsumerState<OrgSignUpPage> {
   bool _obscureText = true;
   bool _obscureConfirmText = true;
 
-  String? _verificationDocumentName;
-  String? _verificationDocumentPath;
+  String? _articlesOfIncorporationName;
+  String? _articlesOfIncorporationPath;
+
+  String? _einName;
+  String? _einPath;
+
+  String? _irsLetterName;
+  String? _irsLetterPath;
   bool _isRegistering = false;
   // Step 1: Address Details Controllers
   final TextEditingController _streetAddressController =
@@ -130,7 +137,7 @@ class _OrgSignUpPageState extends ConsumerState<OrgSignUpPage> {
     ref.read(signUpNotifierProvider.notifier).previousStep();
   }
 
-  Future<void> _pickFile() async {
+  Future<void> _pickFile(String documentType) async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -138,11 +145,29 @@ class _OrgSignUpPageState extends ConsumerState<OrgSignUpPage> {
       );
 
       if (result != null && result.files.isNotEmpty) {
-        final fileName = result.files.first.name;
+        final file = result.files.first;
+        final fileSize = file.size; // bytes
+
+        if (fileSize > 10 * 1024 * 1024) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('File size exceeds 10MB limit.')),
+            );
+          }
+          return;
+        }
 
         setState(() {
-          _verificationDocumentName = fileName;
-          _verificationDocumentPath = result.files.first.path;
+          if (documentType == 'articles') {
+            _articlesOfIncorporationName = file.name;
+            _articlesOfIncorporationPath = file.path;
+          } else if (documentType == 'ein') {
+            _einName = file.name;
+            _einPath = file.path;
+          } else if (documentType == 'irs') {
+            _irsLetterName = file.name;
+            _irsLetterPath = file.path;
+          }
         });
       }
     } catch (e) {
@@ -152,6 +177,106 @@ class _OrgSignUpPageState extends ConsumerState<OrgSignUpPage> {
         ).showSnackBar(SnackBar(content: Text('Error picking file: $e')));
       }
     }
+  }
+
+  Widget _buildDocumentUploadItem({
+    required String title,
+    required String? documentName,
+    required String? documentPath,
+    required VoidCallback onPick,
+    required VoidCallback onClear,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: onPick,
+          child: Container(
+            height: 150,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey, style: BorderStyle.solid),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Stack(
+              children: [
+                if (documentPath != null) ...[
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: IconButton(
+                      onPressed: onClear,
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                    ),
+                  ),
+                ],
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (documentName == null) ...[
+                        const Icon(
+                          Icons.upload_file,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text('Click to upload'),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'PDF, JPG, JPEG, PNG (Max 10MB)',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ] else ...[
+                        if (!documentName.toLowerCase().endsWith('.pdf')) ...[
+                          SizedBox(
+                            height: 80,
+                            child: Image.file(File(documentPath!)),
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                            ),
+                            child: Text(
+                              documentName,
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ] else ...[
+                          const Icon(
+                            Icons.picture_as_pdf,
+                            size: 40,
+                            color: Colors.redAccent,
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                            ),
+                            child: Text(
+                              documentName,
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
   }
 
   Future<void> _getHintPhoneNumber() async {
@@ -170,9 +295,14 @@ class _OrgSignUpPageState extends ConsumerState<OrgSignUpPage> {
     final state = ref.read(signUpNotifierProvider);
 
     // Validate document is uploaded (only required for new registration)
-    if (!isEditMode && _verificationDocumentPath == null) {
+    if (!isEditMode &&
+        (_articlesOfIncorporationPath == null ||
+            _einPath == null ||
+            _irsLetterPath == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please upload a verification document')),
+        const SnackBar(
+          content: Text('Please upload all required verification documents'),
+        ),
       );
       return;
     }
@@ -201,17 +331,39 @@ class _OrgSignUpPageState extends ConsumerState<OrgSignUpPage> {
     try {
       // Prepare documents - use existing if in edit mode and no new file uploaded
       List<OrgDocument> documents = [];
-      if (_verificationDocumentPath != null) {
-        final documentFile = File(_verificationDocumentPath!);
-        final fileName = documentFile.path.split('/').last;
-        documents = [
+      if (_articlesOfIncorporationPath != null) {
+        documents.add(
           OrgDocument(
-            docName: fileName,
-            docUrl: documentFile.path,
-            id: '', // Temporary id, will be set by server
+            docName:
+                'Articles of Incorporation - ${File(_articlesOfIncorporationPath!).path.split('/').last}',
+            docUrl: _articlesOfIncorporationPath!,
+            id: '',
           ),
-        ];
-      } else if (isEditMode && widget.organizationToEdit?.documents != null) {
+        );
+      }
+      if (_einPath != null) {
+        documents.add(
+          OrgDocument(
+            docName: 'EIN - ${File(_einPath!).path.split('/').last}',
+            docUrl: _einPath!,
+            id: '',
+          ),
+        );
+      }
+      if (_irsLetterPath != null) {
+        documents.add(
+          OrgDocument(
+            docName:
+                'IRS 501(c)(3) Letter - ${File(_irsLetterPath!).path.split('/').last}',
+            docUrl: _irsLetterPath!,
+            id: '',
+          ),
+        );
+      }
+
+      if (documents.isEmpty &&
+          isEditMode &&
+          widget.organizationToEdit?.documents != null) {
         // Keep existing documents if no new file uploaded
         documents = widget.organizationToEdit!.documents!;
       }
@@ -268,23 +420,46 @@ class _OrgSignUpPageState extends ConsumerState<OrgSignUpPage> {
         final useCase = ref.read(registerOrganizationUseCaseProvider);
 
         // Call API
-        await useCase.call(registrationModel);
+        final response = await useCase.call(registrationModel);
 
-        // Success - navigate to verification page
+        // Success
         if (mounted) {
           setState(() {
             _isRegistering = false;
           });
 
-          // Navigate to verification page
-          context.push('/organization/verification');
+          // Check for Stripe connect accountLink and launch it
+          if (response.accountLink != null &&
+              response.accountLink!.isNotEmpty) {
+            final uri = Uri.parse(response.accountLink!);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            } else {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Could not open Stripe setup link. Please contact support.',
+                    ),
+                  ),
+                );
+              }
+            }
+          }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Registration completed successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          // Navigate to verification page
+          if (mounted) {
+            context.push('/organization/verification');
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Registration completed successfully! Please complete your Stripe verification.',
+                ),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
         }
       }
     } catch (e) {
@@ -330,20 +505,28 @@ class _OrgSignUpPageState extends ConsumerState<OrgSignUpPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 24),
-              IconButton(
-                onPressed: () {
-                  context.pop();
-                },
-                icon: Icon(Icons.arrow_back_ios_new_rounded),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      context.pop();
+                    },
+                    icon: Icon(Icons.arrow_back_ios_new_rounded),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 24.0, top: 0.0),
+                    child: Text(
+                      isEditMode ? 'Edit Profile' : 'Register Organization',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.only(left: 24.0, top: 0.0),
-                child: Text(
-                  isEditMode ? 'Edit Profile' : 'Register',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-              ),
+
               // Stepper wrapped in RepaintBoundary to prevent unnecessary repaints
               // Using stable key to prevent widget recreation and animation replay
               Padding(
@@ -950,9 +1133,9 @@ class _OrgSignUpPageState extends ConsumerState<OrgSignUpPage> {
       children: [
         Text(
           isEditMode
-              ? 'Verification Document (Optional)'
-              : 'Verification Document',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ? 'Verification Documents (Optional)'
+              : 'Verification Documents',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         if (isEditMode &&
             widget.organizationToEdit?.documents != null &&
@@ -964,72 +1147,41 @@ class _OrgSignUpPageState extends ConsumerState<OrgSignUpPage> {
           ),
         ],
         const SizedBox(height: 16),
-        GestureDetector(
-          onTap: _pickFile,
-          child: Container(
-            height: 200,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey, style: BorderStyle.solid),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Stack(
-              children: [
-                if (_verificationDocumentPath != null) ...[
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _verificationDocumentPath = null;
-                          _verificationDocumentName = null;
-                        });
-                      },
-                      icon: Icon(Icons.close, color: Colors.grey),
-                    ),
-                  ),
-                ],
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (_verificationDocumentName == null) ...[
-                        Icon(Icons.upload_file, size: 48, color: Colors.grey),
-                        SizedBox(height: 8),
-
-                        Text('Click to upload'),
-                        SizedBox(height: 4),
-                        Text(
-                          'PDF or image only (Max 5 MB)',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ] else ...[
-                        if (!_verificationDocumentName!.endsWith('.pdf')) ...[
-                          SizedBox(
-                            height: 120,
-                            // decoration: BoxDecoration(
-                            //   border: Border.all(
-                            //     color: Colors.grey,
-                            //     style: BorderStyle.solid,
-                            //   ),
-                            //   borderRadius: BorderRadius.circular(8),
-                            // ),
-                            child: Image.file(File(_verificationDocumentPath!)),
-                          ),
-                          SizedBox(height: 8),
-                          Text(_verificationDocumentName ?? 'No file selected'),
-                        ] else ...[
-                          Icon(Icons.upload_file, size: 48, color: Colors.grey),
-                          SizedBox(height: 8),
-                          Text(_verificationDocumentName ?? 'No file selected'),
-                        ],
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+        _buildDocumentUploadItem(
+          title: 'Articles of Incorporation',
+          documentName: _articlesOfIncorporationName,
+          documentPath: _articlesOfIncorporationPath,
+          onPick: () => _pickFile('articles'),
+          onClear: () {
+            setState(() {
+              _articlesOfIncorporationName = null;
+              _articlesOfIncorporationPath = null;
+            });
+          },
+        ),
+        _buildDocumentUploadItem(
+          title: 'EIN (Employer Identification Number)',
+          documentName: _einName,
+          documentPath: _einPath,
+          onPick: () => _pickFile('ein'),
+          onClear: () {
+            setState(() {
+              _einName = null;
+              _einPath = null;
+            });
+          },
+        ),
+        _buildDocumentUploadItem(
+          title: 'IRS 501(c)(3) Determination Letter',
+          documentName: _irsLetterName,
+          documentPath: _irsLetterPath,
+          onPick: () => _pickFile('irs'),
+          onClear: () {
+            setState(() {
+              _irsLetterName = null;
+              _irsLetterPath = null;
+            });
+          },
         ),
         const SizedBox(height: 32),
         Row(

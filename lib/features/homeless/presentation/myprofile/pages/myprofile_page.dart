@@ -6,6 +6,7 @@ import 'package:homelyhope/features/common/auth/data/services/auth_storage_servi
 import '../../../../common/Drawer/pages/dynamic_drawer.dart';
 import '../../../../common/widgets/custom_appbar.dart';
 import '../providers/myprofile_provider.dart';
+import 'package:homelyhope/core/utils/formatters.dart';
 
 class MyProfilePage extends ConsumerStatefulWidget {
   const MyProfilePage({super.key});
@@ -72,9 +73,11 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
                           _buildInfoRow(
                             Icons.phone_outlined,
                             'Phone',
-                            profile.contactPhone ??
-                                profile.phone ??
-                                'Not provided',
+                            Formatters.formatPhoneNumber(
+                              profile.contactPhone ??
+                                  profile.phone ??
+                                  'Not provided',
+                            ),
                           ),
                           _buildInfoRow(
                             Icons.email_outlined,

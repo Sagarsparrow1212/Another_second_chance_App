@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:homelyhope/core/theme/app_theme.dart';
-import 'package:homelyhope/features/common/notifications/presentation/pages/notification_page.dart';
+
 import 'package:lucide_icons_flutter/test_icons.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -120,12 +120,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
               ...actions!,
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationPage(),
-                    ),
-                  );
+                  context.push('/notifications');
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(4.0),
@@ -178,12 +173,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                   padding: const EdgeInsets.all(4.0),
                   child: IconButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const NotificationPage(),
-                        ),
-                      );
+                      context.push('/notifications');
                     },
                     icon: FaIcon(
                       FontAwesomeIcons.bell,
