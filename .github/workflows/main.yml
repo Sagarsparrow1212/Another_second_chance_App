@@ -14,8 +14,13 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: false   # 🔥 VERY IMPORTANT (forces latest)
+
+      - run: flutter upgrade
 
       - run: flutter --version
+
+      - run: dart --version   # 👈 verify Dart 3.9+
 
       - run: flutter pub get
 
